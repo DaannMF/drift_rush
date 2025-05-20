@@ -11,14 +11,18 @@ public class MainPanel : MonoBehaviour {
     void Awake() {
         playButton.onClick.AddListener(OnPlayButtonClicked);
         exitButton.onClick.AddListener(OnExitButtonClicked);
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu") {
-            backButton.onClick.AddListener(OnBackButtonClicked);
-            backButton.gameObject.SetActive(false);
-        }
-        else {
+
+
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "MainMenu") {
             backButton.gameObject.SetActive(true);
-            exitButton.gameObject.SetActive(false);
+            backButton.onClick.AddListener(OnBackButtonClicked);
         }
+        else
+            backButton.gameObject.SetActive(false);
+    }
+
+    void OnEnable() {
+        GameManager.Instance.PauseGame();
     }
 
     void OnDestroy() {
@@ -28,18 +32,16 @@ public class MainPanel : MonoBehaviour {
 
     private void OnPlayButtonClicked() {
         // Check if where are in te game scene
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Level1")
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Level1") {
             GameManager.Instance.ResumeGame();
+            return;
+        }
 
         // Load the game scene
         UnityEngine.SceneManagement.SceneManager.LoadScene("Level1");
     }
 
     private void OnBackButtonClicked() {
-        // Check if where are in te game scene
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Level1")
-            GameManager.Instance.PauseGame();
-
         // Load the main menu scene
         UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
     }
