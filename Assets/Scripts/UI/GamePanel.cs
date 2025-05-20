@@ -10,7 +10,6 @@ public class GamePanel : MonoBehaviour {
         GameEvents.onCurrentTimeChanged += OnCurrentTimeChanges;
     }
 
-    // Start is called before the first frame update
     void Start() {
         // Initialize the timer and coins text
         timerText.text = "Time: 00:00";

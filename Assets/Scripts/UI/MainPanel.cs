@@ -32,6 +32,7 @@ public class MainPanel : MonoBehaviour {
 
     private void OnPlayButtonClicked() {
         // Check if where are in te game scene
+        gameObject.SetActive(false);
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Level1") {
             GameManager.Instance.ResumeGame();
             return;

@@ -5,8 +5,10 @@ public class GameManager : MonoBehaviour {
     [Header("Game Settings")]
     [SerializeField] private int targetCoins = 10;
     [SerializeField] private float timeLimit = 60;
-
-    [SerializeField] private GameObject pauseMenu;
+    [SerializeField] private GameObject mainPanel;
+    [SerializeField] private GameObject pausePanel;
+    [SerializeField] private GameObject gamePanel;
+    [SerializeField] private GameObject endGamePanel;
 
     private static GameManager instance;
     public static GameManager Instance {
@@ -22,6 +24,9 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    private bool isGameWon;
+    public bool IsGameWon { get => isGameWon; }
+
     private int currentCoins;
     private float currentTime;
     private bool gameStarted;
@@ -31,6 +36,9 @@ public class GameManager : MonoBehaviour {
         GameEvents.onCurrentCoinsChanged?.Invoke(currentCoins, targetCoins);
         currentTime = timeLimit;
         GameEvents.onCurrentTimeChanged?.Invoke(currentTime);
+        gameStarted = false;
+        isGameWon = false;
+        ResumeGame();
     }
 
     // Update is called once per frame
@@ -40,8 +48,11 @@ public class GameManager : MonoBehaviour {
     }
 
     private void HandlePauseInput() {
-        if (Input.GetKeyDown(KeyCode.Escape))
-            pauseMenu.SetActive(true);
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            mainPanel.SetActive(true);
+            pausePanel.SetActive(true);
+            gamePanel.SetActive(false);
+        }
     }
 
     private void HandleCountdownTimer() {
@@ -57,25 +68,23 @@ public class GameManager : MonoBehaviour {
     }
 
     private void HandleGameCondition() {
-        gameStarted = false;
-
-        if (currentCoins >= targetCoins) {
-            Debug.Log("You win!");
-            // Handle win condition
-        }
-        else {
-            Debug.Log("You lose!");
-            // Handle lose condition
-        }
+        PauseGame();
+        isGameWon = currentCoins >= targetCoins;
+        mainPanel.SetActive(true);
+        pausePanel.SetActive(false);
+        gamePanel.SetActive(false);
+        endGamePanel.SetActive(true);
     }
 
     public void PauseGame() {
         Time.timeScale = 0f;
+        gameStarted = false;
     }
 
     public void ResumeGame() {
         Time.timeScale = 1f;
-        pauseMenu.SetActive(false);
+        if (mainPanel) mainPanel.SetActive(false);
+        if (gamePanel) gamePanel.SetActive(true);
     }
 
     public void AddCoin() {

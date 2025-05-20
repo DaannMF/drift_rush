@@ -21,8 +21,8 @@ por el profesor).
 
 Requisitos Generales
 
-- ✅ El juego debe ser desarrollado en Unity 3D (2022.3.15f1).
-- ✅ Las mecánicas deben contemplar completamente el uso de las 3 dimensiones.
+- El juego debe ser desarrollado en Unity 3D (2022.3.15f1).
+- Las mecánicas deben contemplar completamente el uso de las 3 dimensiones.
 Juegos en 2D no serán aceptados a menos que el profesor lo apruebe, y se
 compensará su menor dificultad con otros requisitos.
 Entrega
@@ -32,16 +32,16 @@ Entrega
 
 ### Requisitos para Nota 0 a 4
 
-- ✅ El juego debe tener un personaje principal (o una variante del tropo).
-  - ✅ No se aceptan juegos de control de recursos sin aprobación previa del
+- El juego debe tener un personaje principal (o una variante del tropo).
+- No se aceptan juegos de control de recursos sin aprobación previa del
     profesor.
-- ✅ El personaje debe contar con un modelo (No primitivas de Unity).
-- ✅ El personaje debe contar con animaciones o sfx de acuerdo al input.
-- ✅ El juego contiene las características mecanicas necesarias para un prototipo.
+- El personaje debe contar con un modelo (No primitivas de Unity).
+- El personaje debe contar con animaciones o sfx de acuerdo al input.
+- El juego contiene las características mecanicas necesarias para un prototipo.
 - El juego debe contar con un inicio y un final.
   - No se aceptan juegos que se cierren automáticamente o que no permitan salir
 del nivel.
-- ✅ Debe tener una UI y un menú de pausa.
+- Debe tener una UI y un menú de pausa.
 Estructura de Escenas
 El prototipo debe contener al menos 3 escenas separadas:
 
@@ -51,10 +51,10 @@ El prototipo debe contener al menos 3 escenas separadas:
 
 #### Transiciones obligatorias
 
-- ✅ Desde el Menú Principal se debe poder acceder a:
-  - La pantalla de Créditos o Tutorial.
-  - El Mundo del Juego.
-- ✅  Desde el Mundo del Juego se debe poder volver al Menú Principal.
+- Desde el Menú Principal se debe poder acceder a:
+- La pantalla de Créditos o Tutorial.
+- El Mundo del Juego.
+- Desde el Mundo del Juego se debe poder volver al Menú Principal.
 - Todas las pantallas deben incluir un botón para cerrar el juego (no cuenta ALT +
 F4).
 
