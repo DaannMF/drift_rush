@@ -32,14 +32,11 @@ public class AudioManager : MonoBehaviour {
     [SerializeField] private AudioClip carBrakeClip;
     [SerializeField] private AudioClip carIdleClip;
     [SerializeField] private AudioClip carDriftClip;
-    [SerializeField] private AudioClip carCrashClip;
-    [SerializeField] private AudioClip carResetClip;
 
     [Header("Game Sound Effects")]
     [SerializeField] private AudioClip coinCollectedClip;
     [SerializeField] private AudioClip levelWinClip;
     [SerializeField] private AudioClip levelLoseClip;
-    [SerializeField] private AudioClip countdownClip;
 
     [Header("Audio Settings")]
     [SerializeField] private float masterVolume = 1f;
@@ -47,7 +44,6 @@ public class AudioManager : MonoBehaviour {
     [SerializeField] private float uiVolume = 1f;
     [SerializeField] private float sfxVolume = 1f;
 
-    // PlayerPrefs keys for volume persistence
     private const string MASTER_VOLUME_KEY = "MasterVolume";
     private const string MUSIC_VOLUME_KEY = "MusicVolume";
     private const string UI_VOLUME_KEY = "UIVolume";
@@ -70,6 +66,13 @@ public class AudioManager : MonoBehaviour {
 
     private void Start() {
         SubscribeToEvents();
+
+        // Inicializar música del menú principal si estamos en MainMenu
+        LevelEvents.onGetIsInMainMenu?.Invoke(isInMainMenu => {
+            if (isInMainMenu) {
+                OnPlayMenuMusic();
+            }
+        });
     }
 
     private void OnDestroy() {
@@ -77,17 +80,22 @@ public class AudioManager : MonoBehaviour {
     }
 
     private void InitializeAudioSources() {
-        // Create music source if not assigned
+        // Cargar clips de música automáticamente si no están asignados
+        if (menuMusic == null) {
+            menuMusic = Resources.Load<AudioClip>("Art/Audio/menu_loop");
+        }
+        if (gameMusic == null) {
+            gameMusic = Resources.Load<AudioClip>("Art/Audio/game_loop");
+        }
+
         if (musicSource == null) {
             musicSource = gameObject.AddComponent<AudioSource>();
             musicSource.loop = true;
             musicSource.playOnAwake = false;
         }
 
-        // Initialize continuous audio sources dictionary
         continuousAudioSources = new Dictionary<ContinuousAudioType, AudioSource>();
 
-        // Create continuous audio sources for each type
         foreach (ContinuousAudioType audioType in System.Enum.GetValues(typeof(ContinuousAudioType))) {
             AudioSource continuousSource = gameObject.AddComponent<AudioSource>();
             continuousSource.loop = true;
@@ -95,7 +103,6 @@ public class AudioManager : MonoBehaviour {
             continuousAudioSources[audioType] = continuousSource;
         }
 
-        // Create SFX sources pool
         sfxSources = new AudioSource[sfxSourcesCount];
         for (int i = 0; i < sfxSourcesCount; i++) {
             sfxSources[i] = gameObject.AddComponent<AudioSource>();
@@ -121,20 +128,19 @@ public class AudioManager : MonoBehaviour {
         AudioEvents.onCarIdleStop += OnCarIdleStop;
         AudioEvents.onCarDrift += OnCarDrift;
         AudioEvents.onCarDriftStop += OnCarDriftStop;
-        AudioEvents.onCarCrash += OnCarCrash;
-        AudioEvents.onCarReset += OnCarReset;
         AudioEvents.onStopAllCarAudio += OnStopAllCarAudio;
 
         // Game Events
         AudioEvents.onCoinCollected += OnCoinCollected;
         AudioEvents.onLevelWin += OnLevelWin;
         AudioEvents.onLevelLose += OnLevelLose;
-        AudioEvents.onCountdown += OnCountdown;
 
         // Music Events
         AudioEvents.onPlayMenuMusic += OnPlayMenuMusic;
         AudioEvents.onPlayGameMusic += OnPlayGameMusic;
         AudioEvents.onStopMusic += OnStopMusic;
+        AudioEvents.onPauseMusic += OnPauseMusic;
+        AudioEvents.onResumeMusic += OnResumeMusic;
 
         // Volume Events
         AudioEvents.onSetMasterVolume += OnSetMasterVolume;
@@ -165,20 +171,19 @@ public class AudioManager : MonoBehaviour {
         AudioEvents.onCarIdleStop -= OnCarIdleStop;
         AudioEvents.onCarDrift -= OnCarDrift;
         AudioEvents.onCarDriftStop -= OnCarDriftStop;
-        AudioEvents.onCarCrash -= OnCarCrash;
-        AudioEvents.onCarReset -= OnCarReset;
         AudioEvents.onStopAllCarAudio -= OnStopAllCarAudio;
 
         // Game Events
         AudioEvents.onCoinCollected -= OnCoinCollected;
         AudioEvents.onLevelWin -= OnLevelWin;
         AudioEvents.onLevelLose -= OnLevelLose;
-        AudioEvents.onCountdown -= OnCountdown;
 
         // Music Events
         AudioEvents.onPlayMenuMusic -= OnPlayMenuMusic;
         AudioEvents.onPlayGameMusic -= OnPlayGameMusic;
         AudioEvents.onStopMusic -= OnStopMusic;
+        AudioEvents.onPauseMusic -= OnPauseMusic;
+        AudioEvents.onResumeMusic -= OnResumeMusic;
 
         // Volume Events
         AudioEvents.onSetMasterVolume -= OnSetMasterVolume;
@@ -203,14 +208,30 @@ public class AudioManager : MonoBehaviour {
     }
 
     private void OnStopMusic() {
-        if (musicSource != null)
+        if (musicSource != null) {
             musicSource.Stop();
+            musicSource.clip = null;
+        }
+    }
+
+    private void OnPauseMusic() {
+        if (musicSource != null && musicSource.isPlaying) {
+            musicSource.Pause();
+        }
+    }
+
+    private void OnResumeMusic() {
+        if (musicSource != null && !musicSource.isPlaying && musicSource.clip != null) {
+            musicSource.UnPause();
+        }
     }
 
     private void PlayMusic(AudioClip clip) {
         if (musicSource != null && clip != null) {
             if (musicSource.clip != clip) {
+                musicSource.Stop();
                 musicSource.clip = clip;
+                musicSource.volume = musicVolume * masterVolume;
                 musicSource.Play();
             }
             else if (!musicSource.isPlaying) {
@@ -219,7 +240,6 @@ public class AudioManager : MonoBehaviour {
         }
     }
 
-    // SFX Methods (simplified - no volume multipliers)
     private void PlaySFX(AudioClip clip) {
         if (clip != null && sfxSources != null) {
             AudioSource source = GetAvailableSFXSource();
@@ -237,7 +257,6 @@ public class AudioManager : MonoBehaviour {
         source.Stop();
     }
 
-    // UI SFX methods (simplified - no volume multipliers)
     private void PlayUISFX(AudioClip clip) {
         if (clip != null && sfxSources != null) {
             AudioSource source = GetAvailableSFXSource();
@@ -256,20 +275,17 @@ public class AudioManager : MonoBehaviour {
     }
 
     private AudioSource GetAvailableSFXSource() {
-        // Find an available source
         for (int i = 0; i < sfxSources.Length; i++) {
             if (!sfxSources[i].isPlaying)
                 return sfxSources[i];
         }
 
-        // If none available, use the next in round-robin
         currentSFXIndex = (currentSFXIndex + 1) % sfxSources.Length;
         return sfxSources[currentSFXIndex];
     }
 
 
 
-    // Generic continuous audio control methods (simplified volume)
     private void StartContinuousAudio(ContinuousAudioType audioType, AudioClip clip) {
         if (continuousAudioSources.TryGetValue(audioType, out AudioSource source) && clip != null) {
             if (!source.isPlaying) {
@@ -294,7 +310,6 @@ public class AudioManager : MonoBehaviour {
         }
     }
 
-    // Volume Control (with persistence)
     private void OnSetMasterVolume(float volume) {
         masterVolume = Mathf.Clamp01(volume);
         SaveVolumeSettings();
@@ -318,25 +333,21 @@ public class AudioManager : MonoBehaviour {
         sfxVolume = Mathf.Clamp01(volume);
         SaveVolumeSettings();
 
-        // Update all continuous audio sources volume
         foreach (var audioSource in continuousAudioSources.Values) {
             audioSource.volume = sfxVolume * masterVolume;
         }
     }
 
     private void UpdateAllVolumes() {
-        // Update music volume
         if (musicSource != null) {
             musicSource.volume = musicVolume * masterVolume;
         }
 
-        // Update continuous audio sources volume
         foreach (var audioSource in continuousAudioSources.Values) {
             audioSource.volume = sfxVolume * masterVolume;
         }
     }
 
-    // Volume Request methods (using callbacks)
     private void OnGetMasterVolume(System.Action<float> callback) {
         callback?.Invoke(masterVolume);
     }
@@ -353,7 +364,6 @@ public class AudioManager : MonoBehaviour {
         callback?.Invoke(sfxVolume);
     }
 
-    // Updated Event Handlers (UI sounds use UI volume - no additional multipliers)
     private void OnButtonHover() => PlayUISFX(buttonHoverClip);
     private void OnButtonClick() => PlayUISFX(buttonClickClip);
     private void OnMenuOpen() => PlayUISFX(menuOpenClip);
@@ -367,17 +377,10 @@ public class AudioManager : MonoBehaviour {
     private void OnCarIdleStop() => StopContinuousAudio(ContinuousAudioType.CarIdle);
     private void OnCarDrift() => StartContinuousAudio(ContinuousAudioType.CarDrift, carDriftClip);
     private void OnCarDriftStop() => StopContinuousAudio(ContinuousAudioType.CarDrift);
-    private void OnCarCrash() => PlaySFX(carCrashClip);
-
-    private void OnCarReset() {
-        StopAllContinuousAudio();
-        PlaySFX(carResetClip);
-    }
 
     private void OnCoinCollected() => PlaySFX(coinCollectedClip);
     private void OnLevelWin() => PlaySFX(levelWinClip);
     private void OnLevelLose() => PlaySFX(levelLoseClip);
-    private void OnCountdown() => PlaySFX(countdownClip);
 
     private void OnStopAllCarAudio() {
         StopAllContinuousAudio();

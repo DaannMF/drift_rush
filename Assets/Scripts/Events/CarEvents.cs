@@ -1,8 +1,5 @@
 using UnityEngine.Events;
 
-/// <summary>
-/// Events related to car control, movement, and car-specific actions
-/// </summary>
 public abstract class CarEvents {
     public static UnityAction<float> onCarThrottleInput;
     public static UnityAction<float> onCarSteerInput;

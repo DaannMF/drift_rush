@@ -9,7 +9,6 @@ public class GameManager : MonoBehaviour {
     private static GameManager instance;
 
     private bool isGameWon;
-    public bool IsGameWon { get => isGameWon; }
 
     private int currentCoins;
     private float currentTime;
@@ -37,6 +36,11 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+
+    void Update() {
+        HandleCountdownTimer();
+    }
+
     private void OnDestroy() {
         UnsubscribeFromEvents();
     }
@@ -47,8 +51,6 @@ public class GameManager : MonoBehaviour {
         GameEvents.onAddCoin += AddCoin;
         GameEvents.onInitializeLevel += InitializeLevel;
         UIEvents.onForceUIUpdate += ForceUIUpdate;
-        UIEvents.onSetupMainMenuUI += SetupMainMenuUI;
-        UIEvents.onSetupGameUI += SetupGameUI;
         GameEvents.onGetIsGameWon += HandleGetIsGameWon;
     }
 
@@ -58,8 +60,6 @@ public class GameManager : MonoBehaviour {
         GameEvents.onAddCoin -= AddCoin;
         GameEvents.onInitializeLevel -= InitializeLevel;
         UIEvents.onForceUIUpdate -= ForceUIUpdate;
-        UIEvents.onSetupMainMenuUI -= SetupMainMenuUI;
-        UIEvents.onSetupGameUI -= SetupGameUI;
         GameEvents.onGetIsGameWon -= HandleGetIsGameWon;
     }
 
@@ -77,10 +77,6 @@ public class GameManager : MonoBehaviour {
 
         ConfigureUIForCurrentScene();
         AudioEvents.onPlayGameMusic?.Invoke();
-    }
-
-    void Update() {
-        HandleCountdownTimer();
     }
 
     private void HandleCountdownTimer() {
@@ -115,30 +111,24 @@ public class GameManager : MonoBehaviour {
         Time.timeScale = 0f;
         gameStarted = false;
         AudioEvents.onStopAllCarAudio?.Invoke();
+        AudioEvents.onPauseMusic?.Invoke();
     }
 
     public void ResumeGame() {
         Time.timeScale = 1f;
         ConfigureUIForCurrentScene();
+        AudioEvents.onResumeMusic?.Invoke();
     }
 
     private void ConfigureUIForCurrentScene() {
         LevelEvents.onGetIsInMainMenu?.Invoke(isInMainMenu => {
             if (isInMainMenu) {
-                SetupMainMenuUI();
+                UIEvents.onShowMainMenu?.Invoke();
             }
             else {
-                SetupGameUI();
+                UIEvents.onShowGameUI?.Invoke();
             }
         });
-    }
-
-    public void SetupMainMenuUI() {
-        UIEvents.onShowMainMenu?.Invoke();
-    }
-
-    public void SetupGameUI() {
-        UIEvents.onShowGameUI?.Invoke();
     }
 
     public void AddCoin() {

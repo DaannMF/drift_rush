@@ -1,12 +1,8 @@
 using UnityEngine.Events;
 using System.Collections.Generic;
 
-/// <summary>
-/// Events related to level management, loading, and progression
-/// </summary>
 public abstract class LevelEvents {
     public static UnityAction onRestartLevel;
-    public static UnityAction onAllLevelsCompleted;
 
     public static UnityAction onLevelLoadStarted;
     public static UnityAction onLevelLoadCompleted;

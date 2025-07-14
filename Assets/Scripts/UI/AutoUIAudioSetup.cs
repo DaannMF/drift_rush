@@ -1,9 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Automatically adds UIAudioHandler to all buttons in the scene
-/// </summary>
 public class AutoUIAudioSetup : MonoBehaviour {
     [SerializeField] private bool includeInactive = true;
 

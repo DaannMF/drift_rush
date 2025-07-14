@@ -1,52 +1,86 @@
 # Drift Rush
 
-Juego de carreras arcade donde debes conseguir un número de monedas y llegar a la meta antes de que se acabe el tiempo.
+Juego de carreras arcade donde debes recolectar monedas y completar cada nivel antes de que se acabe el tiempo.
 
-**Características principales:**
+## 🎮 Sobre el Juego
 
-- Sistema de control arcade optimizado para drift
-- Nuevo Unity Input System con eventos
-- Soporte completo para múltiples dispositivos (keyboard, gamepad)
-- Físicas arcade sin WheelColliders para máxima diversión
-- **🎵 Sistema de audio completo** - Música, efectos de UI y auto con persistencia
+**Drift Rush** es un juego de carreras arcade con físicas de drift donde el objetivo es recolectar todas las monedas necesarias en cada nivel dentro del tiempo límite. El juego cuenta con múltiples niveles, sistema de pausa, música dinámica y efectos de sonido inmersivos.
 
-Para la materia Práctica Profesional juego en Unity - Image Campus
+### Características Principales
 
-## 🎮 Sistema de Control Moderno
+- 🏎️ **Sistema de drift arcade** optimizado para diversión
+- 🎵 **Música dinámica** que cambia entre menú y niveles
+- 🎮 **Controles intuitivos** con teclado y gamepad
+- ⏱️ **Sistema de tiempo límite** con contador regresivo
+- 🪙 **Recolección de monedas** como objetivo principal
+- 🎯 **Múltiples niveles** con diferentes desafíos
 
-DriftRush utiliza el **nuevo Unity Input System** con un sistema de eventos para máximo rendimiento y flexibilidad:
+## 🎮 Controles
 
-### Controles
+### Teclado
 
-- **Teclado**: W/S (acelerar/frenar), A/D (girar), Espacio (freno de mano)
-- **Gamepad**: Stick izquierdo (movimiento), botones (freno de mano)
-- **Auto-detección** de dispositivos conectados
-- **Sensibilidad y deadzone** configurables
+- **W/S**: Acelerar/Frenar
+- **A/D**: Girar izquierda/derecha
+- **Espacio**: Freno de mano (drift)
+- **Escape**: Pausar/Reanudar (solo en niveles)
+- **R**: Resetear auto
 
-### Arquitectura
+### Gamepad
 
-- **InputManager**: Maneja todos los inputs con eventos estáticos
-- **ArcadeCarController**: Sistema arcade optimizado para drift
-- **CarSettings**: Configuración centralizada con ScriptableObject
+- **Stick izquierdo**: Movimiento
+- **Gatillos**: Acelerar/Frenar
+- **Botones**: Freno de mano
+- **Botón Start**: Pausar/Reanudar
 
-## 📚 Documentación
+## 🏗️ Arquitectura del Sistema
 
-- **[ArcadeWheelCarController](./Assets/Docs/ArcadeWheelCarController.md)** - **🏆 RECOMENDADO** Sistema híbrido: WheelColliders + Control Arcade
-- **[ArcadeCarController](./Assets/Docs/ArcadeCarController.md)** - Sistema arcade puro sin WheelColliders  
-- **[CarController Guide](./Assets/Docs/CarControllerGuide.md)** - Sistema legacy realista
-- **[AudioSystemGuide](./Assets/Docs/AudioSystemGuide.md)** - **🎵 NUEVO** Sistema completo de audio y música
+El juego utiliza un sistema de eventos desacoplado con managers persistentes:
 
-### Documentos del Proyecto
+### Managers Principales
 
-- [Consigna TP 01](./Assets/Docs/parcial_1.md)
-- [Game Design Document](./Assets/Docs/GDD%20Drift%20Rush.pdf)
+- **[GameManager](./Assets/Docs/GameManager.md)** - Lógica del juego, tiempo y monedas
+- **[LevelManager](./Assets/Docs/LevelManager.md)** - Carga de escenas y niveles
+- **[AudioManager](./Assets/Docs/AudioManager.md)** - Música y efectos de sonido
+- **[InputManager](./Assets/Docs/InputManager.md)** - Entrada del usuario
+- **[CanvasManager](./Assets/Docs/CanvasManager.md)** - Manejo de UI
 
-## PENDIENTES
+### Componentes Principales
 
-Agregar dos niveles mas
-Checkpoints
-Obstáculos tipo conos
-Sonidos
-UI con velocímetro
-Obstáculo que restartee al player o lo ralentice
+- **[ArcadeCarController](./Assets/Docs/ArcadeCarController.md)** - Controlador del auto con drift
+
+📚 **[Ver Documentación Técnica Completa](./Assets/Docs/README.md)**
+
+## 🚀 Cómo Jugar
+
+1. **Menú Principal**: Selecciona "Level" para elegir un nivel
+2. **Durante el Juego**: Recolecta todas las monedas antes de que se acabe el tiempo
+3. **Pausa**: Presiona Escape para pausar/reanudar
+4. **Victoria**: Completa el objetivo para avanzar al siguiente nivel
+5. **Derrota**: Si se acaba el tiempo, puedes reintentar
+
+## 🎵 Sistema de Audio
+
+- **Música de fondo**: Cambia automáticamente entre menú y juego
+- **Efectos de auto**: Aceleración, frenado, drift, idle
+- **Efectos de UI**: Hover, click, menú
+- **Efectos de juego**: Monedas, victoria, derrota
+
+## 📁 Estructura del Proyecto
+
+```
+Assets/
+├── Scripts/
+│   ├── Managers/          # Sistemas principales
+│   ├── Controllers/       # Controladores de gameplay
+│   ├── Events/           # Sistema de eventos
+│   └── UI/               # Interfaz de usuario
+├── Prefabs/              # Prefabs reutilizables
+├── Scenes/               # Escenas del juego
+└── Docs/                 # Documentación técnica
+```
+
+---
+
+**Para la materia Práctica Profesional - Unity Development**  
+**Image Campus**
 Cheat code (que complete el siguiente checkpoint o invencibilidad)

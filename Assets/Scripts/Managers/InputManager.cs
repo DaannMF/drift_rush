@@ -1,32 +1,34 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System;
 
 public class InputManager : MonoBehaviour {
-    private Int16 throttle;
-    private Int16 steer;
-    private bool drift;
-
-    public Int16 Throttle { get { return throttle; } }
-    public Int16 Steer { get { return steer; } }
-    public bool Drift { get { return drift; } }
-
     private void OnThrottle(InputValue value) {
-        throttle = (Int16)value.Get<float>();
-        CarEvents.onCarThrottleInput?.Invoke(throttle);
+        CarEvents.onCarThrottleInput?.Invoke(value.Get<float>());
     }
 
     private void OnSteer(InputValue value) {
-        steer = (Int16)value.Get<float>();
-        CarEvents.onCarSteerInput?.Invoke(steer);
+        CarEvents.onCarSteerInput?.Invoke(value.Get<float>());
     }
 
     private void OnDrift(InputValue value) {
-        drift = value.Get<float>() > 0.5f;
-        CarEvents.onCarDriftInput?.Invoke(drift);
+        CarEvents.onCarDriftInput?.Invoke(value.Get<float>() > 0.5f);
     }
 
     private void OnRestart(InputValue _) {
         CarEvents.onResetCar?.Invoke();
+    }
+
+    private void OnPause(InputValue _) {
+        LevelEvents.onGetIsInLevel?.Invoke(isInLevel => {
+            if (isInLevel) {
+                if (Time.timeScale == 0f) {
+                    GameEvents.onResumeGame?.Invoke();
+                }
+                else {
+                    GameEvents.onPauseGame?.Invoke();
+                    UIEvents.onShowPauseMenu?.Invoke();
+                }
+            }
+        });
     }
 }

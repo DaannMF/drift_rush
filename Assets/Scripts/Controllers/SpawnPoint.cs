@@ -47,33 +47,6 @@ public class SpawnPoint : MonoBehaviour {
         }
     }
 
-    private void OnDrawGizmosSelected() {
-        if (!showGizmos) return;
-
-        Gizmos.color = gizmoColor;
-        Gizmos.DrawCube(transform.position, Vector3.one * gizmoSize);
-
-        Gizmos.color = directionColor;
-        Vector3 forward = transform.forward * (arrowLength * 1.5f);
-        Gizmos.DrawRay(transform.position, forward);
-
-        Vector3 arrowTip = transform.position + forward;
-        Vector3 arrowRight = transform.right * (gizmoSize * 0.5f);
-        Vector3 arrowUp = transform.up * (gizmoSize * 0.5f);
-
-        Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.3f + arrowRight);
-        Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.3f - arrowRight);
-        Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.3f + arrowUp);
-        Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.3f - arrowUp);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, transform.right * gizmoSize * 0.7f);
-        Gizmos.color = Color.green;
-        Gizmos.DrawRay(transform.position, transform.up * gizmoSize * 0.7f);
-        Gizmos.color = Color.blue;
-        Gizmos.DrawRay(transform.position, transform.forward * gizmoSize * 0.7f);
-    }
-
     public void SpawnObject(GameObject obj) {
         if (obj == null) return;
 

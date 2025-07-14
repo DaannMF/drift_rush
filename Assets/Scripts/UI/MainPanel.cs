@@ -8,8 +8,11 @@ public class MainPanel : MonoBehaviour {
     [SerializeField] Button exitButton;
 
     void Awake() {
+#if UNITY_WEBGL
+        exitButton.gameObject.SetActive(false);
+#else
         exitButton.onClick.AddListener(OnExitButtonClicked);
-
+#endif
 
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "MainMenu") {
             backButton.gameObject.SetActive(true);
@@ -20,11 +23,17 @@ public class MainPanel : MonoBehaviour {
     }
 
     void OnEnable() {
-        GameEvents.onPauseGame?.Invoke();
+        LevelEvents.onGetIsInLevel?.Invoke(isInLevel => {
+            if (isInLevel) {
+                GameEvents.onPauseGame?.Invoke();
+            }
+        });
     }
 
     void OnDestroy() {
+#if !UNITY_WEBGL
         exitButton.onClick.RemoveListener(OnExitButtonClicked);
+#endif
     }
 
     private void OnBackButtonClicked() {

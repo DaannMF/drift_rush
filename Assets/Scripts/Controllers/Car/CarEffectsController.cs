@@ -1,8 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Controls visual effects for the car, particularly drift effects
-/// </summary>
 public class CarEffectsController : MonoBehaviour {
     [Header("Drift Effects")]
     [SerializeField] private ParticleSystem leftDriftParticles;

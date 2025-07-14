@@ -52,10 +52,14 @@ public class LevelManager : MonoBehaviour {
         LevelEvents.onGetIsInMainMenu += callback => callback?.Invoke(IsInMainMenu);
         LevelEvents.onGetIsInLevel += callback => callback?.Invoke(IsInLevel);
         LevelEvents.onGetTotalLevels += callback => callback?.Invoke(TotalLevels);
-        LevelEvents.onGetLevelData += callback => callback?.Invoke(levels);
+        LevelEvents.onGetLevelData += OnGetLevelData;
 
         // Car Reset
         CarEvents.onResetCar += OnResetCar;
+    }
+
+    private void OnGetLevelData(System.Action<List<LevelData>> callback) {
+        callback?.Invoke(levels);
     }
 
     private void UnsubscribeFromEvents() {
@@ -87,12 +91,8 @@ public class LevelManager : MonoBehaviour {
     }
 
     public void LoadNextLevel() {
-        if (currentLevelIndex + 1 < levels.Count) {
+        if (currentLevelIndex + 1 < levels.Count)
             LoadLevel(currentLevelIndex + 1);
-        }
-        else {
-            LevelEvents.onAllLevelsCompleted?.Invoke();
-        }
     }
 
     public void RestartCurrentLevel() {
@@ -160,7 +160,6 @@ public class LevelManager : MonoBehaviour {
     private void FindAndSetupSpawnPoint() {
         currentSpawnPoint = FindObjectOfType<SpawnPoint>();
         if (currentSpawnPoint == null) {
-            Debug.LogWarning("No SpawnPoint found in the scene! Creating default spawn at origin.");
             GameObject spawnObj = new GameObject("DefaultSpawnPoint");
             currentSpawnPoint = spawnObj.AddComponent<SpawnPoint>();
         }
@@ -182,12 +181,12 @@ public class LevelManager : MonoBehaviour {
     }
 
     private void ConfigureUIForLevel() {
-        UIEvents.onSetupGameUI?.Invoke();
+        UIEvents.onShowGameUI?.Invoke();
         GameEvents.onResumeGame?.Invoke();
     }
 
     private void ConfigureUIForMainMenu() {
-        UIEvents.onSetupMainMenuUI?.Invoke();
+        UIEvents.onShowMainMenu?.Invoke();
         GameEvents.onPauseGame?.Invoke();
     }
 

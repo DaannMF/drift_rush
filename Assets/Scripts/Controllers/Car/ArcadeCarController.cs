@@ -7,12 +7,12 @@ public class ArcadeCarController : MonoBehaviour {
     [SerializeField] private float groundCheckDistance = 0.5f;
     [SerializeField] private Transform leftFrontWheel;
     [SerializeField] private Transform rightFrontWheel;
-    [SerializeField] private float upRightForce = 1000f;
-    [SerializeField] private float uprightTorque = 10000f;
+    [SerializeField] private float upRightForce = 300f;
+    [SerializeField] private float uprightTorque = 3000f;
     [SerializeField] private float stuckDetectionTime = 3f;
     [SerializeField] private float minVelocityThreshold = 0.1f;
+    [SerializeField] private float maxVerticalVelocity = 25f;
 
-    // Car input state (received via events, not direct dependency)
     private float currentThrottle = 0f;
     private float currentSteer = 0f;
     private bool currentDrift = false;
@@ -52,6 +52,12 @@ public class ArcadeCarController : MonoBehaviour {
             ApplyForceToRigidbody();
         else
             ApplyGravity();
+
+        if (Mathf.Abs(rb.velocity.y) > maxVerticalVelocity) {
+            rb.velocity = new Vector3(rb.velocity.x,
+                                     Mathf.Sign(rb.velocity.y) * maxVerticalVelocity,
+                                     rb.velocity.z);
+        }
     }
 
     private void OnDestroy() {
@@ -59,7 +65,6 @@ public class ArcadeCarController : MonoBehaviour {
     }
 
     private void SubscribeToEvents() {
-        // Subscribe to car input events
         CarEvents.onCarThrottleInput += OnThrottleInput;
         CarEvents.onCarSteerInput += OnSteerInput;
         CarEvents.onCarDriftInput += OnDriftInput;
@@ -67,14 +72,12 @@ public class ArcadeCarController : MonoBehaviour {
     }
 
     private void UnsubscribeFromEvents() {
-        // Unsubscribe from car input events
         CarEvents.onCarThrottleInput -= OnThrottleInput;
         CarEvents.onCarSteerInput -= OnSteerInput;
         CarEvents.onCarDriftInput -= OnDriftInput;
         CarEvents.onResetCar -= OnResetCar;
     }
 
-    // Input event handlers
     private void OnThrottleInput(float throttle) {
         currentThrottle = throttle;
     }
@@ -93,17 +96,15 @@ public class ArcadeCarController : MonoBehaviour {
         float xOffset = bounds.size.x * 0.4f;
         float zOffset = bounds.size.z * 0.4f;
 
-        raycastPoints[0] = new Vector3(xOffset, 0, zOffset);     // Front Right
-        raycastPoints[1] = new Vector3(-xOffset, 0, zOffset);    // Front Left
-        raycastPoints[2] = new Vector3(xOffset, 0, -zOffset);    // Back Right
-        raycastPoints[3] = new Vector3(-xOffset, 0, -zOffset);   // Back Left
+        raycastPoints[0] = new Vector3(xOffset, 0, zOffset);
+        raycastPoints[1] = new Vector3(-xOffset, 0, zOffset);
+        raycastPoints[2] = new Vector3(xOffset, 0, -zOffset);
+        raycastPoints[3] = new Vector3(-xOffset, 0, -zOffset);
     }
 
     private void UpdatePositionAndRotation() {
-        // Don't process movement if game is paused
         if (Time.timeScale == 0f) return;
 
-        // Choose steer angle based on drift input
         float currentSteerAngle = currentDrift ? data.driftSteerAngle : data.normalSteerAngle;
 
         Vector3 steerVector = new(0f, currentSteer * currentSteerAngle * Time.deltaTime * currentThrottle, 0f);
@@ -208,7 +209,10 @@ public class ArcadeCarController : MonoBehaviour {
             transform.rotation = Quaternion.FromToRotation(transform.up, averageNormal) * transform.rotation;
         }
         else {
-            HandleUprightRecovery();
+            float uprightDot = Vector3.Dot(transform.up, Vector3.up);
+            if (uprightDot < 0.5f) {
+                HandleUprightRecovery();
+            }
         }
     }
 
@@ -216,11 +220,11 @@ public class ArcadeCarController : MonoBehaviour {
         Vector3 up = Vector3.up;
         float uprightDot = Vector3.Dot(transform.up, up);
 
-        if (uprightDot < 0.7f) {
-            rb.AddForce(up * upRightForce, ForceMode.Acceleration);
+        if (uprightDot < 0.5f && rb.velocity.y > -15f) {
+            rb.AddForce(up * upRightForce * 0.5f, ForceMode.Acceleration);
 
             Vector3 torque = Vector3.Cross(transform.up, up);
-            rb.AddTorque(torque * uprightTorque, ForceMode.Acceleration);
+            rb.AddTorque(torque * uprightTorque * 0.5f, ForceMode.Acceleration);
         }
     }
 
@@ -247,15 +251,18 @@ public class ArcadeCarController : MonoBehaviour {
     }
 
     private void ForceUprightRecovery() {
-        AudioEvents.onCarCrash?.Invoke();
-
         Vector3 up = Vector3.up;
-        rb.AddForce(up * upRightForce * 2f, ForceMode.VelocityChange);
+
+        rb.AddForce(up * upRightForce * 1.2f, ForceMode.VelocityChange);
 
         Vector3 torque = Vector3.Cross(transform.up, up);
-        rb.AddTorque(torque * uprightTorque * 2f, ForceMode.VelocityChange);
+        rb.AddTorque(torque * uprightTorque * 1.2f, ForceMode.VelocityChange);
 
-        rb.AddForce(transform.forward * upRightForce * 0.5f, ForceMode.Impulse);
+        rb.AddForce(transform.forward * upRightForce * 0.3f, ForceMode.Impulse);
+
+        if (rb.velocity.y > 20f) {
+            rb.velocity = new Vector3(rb.velocity.x, 20f, rb.velocity.z);
+        }
     }
 
     private void OnResetCar() {
@@ -285,8 +292,6 @@ public class ArcadeCarController : MonoBehaviour {
         lastPosition = transform.position;
 
         isDrifting = false;
-
-        AudioEvents.onCarReset?.Invoke();
     }
 
     private void UpdateSpeed() {
