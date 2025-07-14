@@ -5,24 +5,8 @@ public class GameManager : MonoBehaviour {
     [Header("Game Settings")]
     [SerializeField] private int targetCoins = 10;
     [SerializeField] private float timeLimit = 60;
-    [SerializeField] private GameObject mainPanel;
-    [SerializeField] private GameObject pausePanel;
-    [SerializeField] private GameObject gamePanel;
-    [SerializeField] private GameObject endGamePanel;
 
     private static GameManager instance;
-    public static GameManager Instance {
-        get {
-            if (instance == null) {
-                instance = FindObjectOfType<GameManager>();
-                if (instance == null) {
-                    GameObject obj = new GameObject("GameManager");
-                    instance = obj.AddComponent<GameManager>();
-                }
-            }
-            return instance;
-        }
-    }
 
     private bool isGameWon;
     public bool IsGameWon { get => isGameWon; }
@@ -30,29 +14,73 @@ public class GameManager : MonoBehaviour {
     private int currentCoins;
     private float currentTime;
     private bool gameStarted;
+    private bool isLevelInitialized;
+
+    private void Awake() {
+        if (instance == null) {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (instance != this) {
+            Destroy(gameObject);
+        }
+    }
 
     void Start() {
+        SubscribeToEvents();
+
+        if (!isLevelInitialized) {
+            InitializeLevel(targetCoins, timeLimit);
+        }
+        else {
+            ConfigureUIForCurrentScene();
+        }
+    }
+
+    private void OnDestroy() {
+        UnsubscribeFromEvents();
+    }
+
+    private void SubscribeToEvents() {
+        GameEvents.onPauseGame += PauseGame;
+        GameEvents.onResumeGame += ResumeGame;
+        GameEvents.onAddCoin += AddCoin;
+        GameEvents.onInitializeLevel += InitializeLevel;
+        UIEvents.onForceUIUpdate += ForceUIUpdate;
+        UIEvents.onSetupMainMenuUI += SetupMainMenuUI;
+        UIEvents.onSetupGameUI += SetupGameUI;
+        GameEvents.onGetIsGameWon += HandleGetIsGameWon;
+    }
+
+    private void UnsubscribeFromEvents() {
+        GameEvents.onPauseGame -= PauseGame;
+        GameEvents.onResumeGame -= ResumeGame;
+        GameEvents.onAddCoin -= AddCoin;
+        GameEvents.onInitializeLevel -= InitializeLevel;
+        UIEvents.onForceUIUpdate -= ForceUIUpdate;
+        UIEvents.onSetupMainMenuUI -= SetupMainMenuUI;
+        UIEvents.onSetupGameUI -= SetupGameUI;
+        GameEvents.onGetIsGameWon -= HandleGetIsGameWon;
+    }
+
+    public void InitializeLevel(int levelTargetCoins, float levelTimeLimit) {
+        targetCoins = levelTargetCoins;
+        timeLimit = levelTimeLimit;
+
         currentCoins = 0;
         GameEvents.onCurrentCoinsChanged?.Invoke(currentCoins, targetCoins);
         currentTime = timeLimit;
         GameEvents.onCurrentTimeChanged?.Invoke(currentTime);
         gameStarted = false;
         isGameWon = false;
-        ResumeGame();
+        isLevelInitialized = true;
+
+        ConfigureUIForCurrentScene();
+        AudioEvents.onPlayGameMusic?.Invoke();
     }
 
-    // Update is called once per frame
     void Update() {
-        HandlePauseInput();
         HandleCountdownTimer();
-    }
-
-    private void HandlePauseInput() {
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            mainPanel.SetActive(true);
-            pausePanel.SetActive(true);
-            gamePanel.SetActive(false);
-        }
     }
 
     private void HandleCountdownTimer() {
@@ -69,22 +97,48 @@ public class GameManager : MonoBehaviour {
 
     private void HandleGameCondition() {
         PauseGame();
+        AudioEvents.onStopAllCarAudio?.Invoke();
+
         isGameWon = currentCoins >= targetCoins;
-        mainPanel.SetActive(true);
-        pausePanel.SetActive(false);
-        gamePanel.SetActive(false);
-        endGamePanel.SetActive(true);
+
+        if (isGameWon) {
+            AudioEvents.onLevelWin?.Invoke();
+        }
+        else {
+            AudioEvents.onLevelLose?.Invoke();
+        }
+
+        GameEvents.onGameFinished?.Invoke();
     }
 
     public void PauseGame() {
         Time.timeScale = 0f;
         gameStarted = false;
+        AudioEvents.onStopAllCarAudio?.Invoke();
     }
 
     public void ResumeGame() {
         Time.timeScale = 1f;
-        if (mainPanel) mainPanel.SetActive(false);
-        if (gamePanel) gamePanel.SetActive(true);
+        ConfigureUIForCurrentScene();
+    }
+
+    private void ConfigureUIForCurrentScene() {
+        LevelEvents.onGetIsInMainMenu?.Invoke(isInMainMenu => {
+            if (isInMainMenu) {
+                SetupMainMenuUI();
+            }
+            else {
+                SetupGameUI();
+            }
+        });
+    }
+
+    public void SetupMainMenuUI() {
+        UIEvents.onShowMainMenu?.Invoke();
+    }
+
+    public void SetupGameUI() {
+        UIEvents.onShowGameUI?.Invoke();
     }
 
     public void AddCoin() {
@@ -93,5 +147,17 @@ public class GameManager : MonoBehaviour {
 
         currentCoins++;
         GameEvents.onCurrentCoinsChanged?.Invoke(currentCoins, targetCoins);
+
+        if (currentCoins >= targetCoins) {
+            HandleGameCondition();
+        }
+    }
+
+    public void ForceUIUpdate() {
+        ConfigureUIForCurrentScene();
+    }
+
+    private void HandleGetIsGameWon(System.Action<bool> callback) {
+        callback?.Invoke(isGameWon);
     }
 }

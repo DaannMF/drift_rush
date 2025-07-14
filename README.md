@@ -8,6 +8,7 @@ Juego de carreras arcade donde debes conseguir un número de monedas y llegar a 
 - Nuevo Unity Input System con eventos
 - Soporte completo para múltiples dispositivos (keyboard, gamepad)
 - Físicas arcade sin WheelColliders para máxima diversión
+- **🎵 Sistema de audio completo** - Música, efectos de UI y auto con persistencia
 
 Para la materia Práctica Profesional juego en Unity - Image Campus
 
@@ -33,6 +34,7 @@ DriftRush utiliza el **nuevo Unity Input System** con un sistema de eventos para
 - **[ArcadeWheelCarController](./Assets/Docs/ArcadeWheelCarController.md)** - **🏆 RECOMENDADO** Sistema híbrido: WheelColliders + Control Arcade
 - **[ArcadeCarController](./Assets/Docs/ArcadeCarController.md)** - Sistema arcade puro sin WheelColliders  
 - **[CarController Guide](./Assets/Docs/CarControllerGuide.md)** - Sistema legacy realista
+- **[AudioSystemGuide](./Assets/Docs/AudioSystemGuide.md)** - **🎵 NUEVO** Sistema completo de audio y música
 
 ### Documentos del Proyecto
 

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 public class EndGamePanel : MonoBehaviour {
     [SerializeField] private Button playAgainButton;
+    [SerializeField] private Button nextLevelButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private Button exitButton;
 
@@ -11,31 +12,51 @@ public class EndGamePanel : MonoBehaviour {
 
     void Awake() {
         playAgainButton.onClick.AddListener(OnPlayAgainButtonClicked);
+        if (nextLevelButton != null) {
+            nextLevelButton.onClick.AddListener(OnNextLevelButtonClicked);
+        }
         mainMenuButton.onClick.AddListener(OnMainMenuButtonClicked);
         exitButton.onClick.AddListener(OnExitButtonClicked);
     }
 
-    // Start is called before the first frame update
     void Start() {
-        // Check if the game is won or lost
-        if (GameManager.Instance.IsGameWon) {
+        GameEvents.onGetIsGameWon?.Invoke(OnGameWonReceived);
+    }
+
+    private void OnGameWonReceived(bool isGameWon) {
+        if (isGameWon) {
             winTitle.SetActive(true);
             loseTitle.SetActive(false);
+
+            if (nextLevelButton != null) {
+                LevelEvents.onGetCurrentLevelIndex?.Invoke(currentLevel => {
+                    LevelEvents.onGetTotalLevels?.Invoke(totalLevels => {
+                        bool hasNextLevel = currentLevel + 1 < totalLevels;
+                        nextLevelButton.gameObject.SetActive(hasNextLevel);
+                    });
+                });
+            }
         }
         else {
             winTitle.SetActive(false);
             loseTitle.SetActive(true);
+
+            if (nextLevelButton != null) {
+                nextLevelButton.gameObject.SetActive(false);
+            }
         }
     }
 
     private void OnPlayAgainButtonClicked() {
-        // Reload the current scene
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        LevelEvents.onRestartLevel?.Invoke();
+    }
+
+    private void OnNextLevelButtonClicked() {
+        LevelEvents.onLoadNextLevel?.Invoke();
     }
 
     private void OnMainMenuButtonClicked() {
-        // Load the main menu scene
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        LevelEvents.onLoadMainMenu?.Invoke();
     }
 
     private void OnExitButtonClicked() {

@@ -4,21 +4,24 @@ using UnityEngine;
 public class GamePanel : MonoBehaviour {
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private TMP_Text coinsText;
+    [SerializeField] private TMP_Text speedText;
 
     void Awake() {
         GameEvents.onCurrentCoinsChanged += OnCoinsTextChange;
         GameEvents.onCurrentTimeChanged += OnCurrentTimeChanges;
+        CarEvents.onCarSpeedChanged += OnCarSpeedChanged;
     }
 
     void Start() {
-        // Initialize the timer and coins text
         timerText.text = "Time: 00:00";
         coinsText.text = "Coins: 0 / 0";
+        speedText.text = "0 km/h";
     }
 
     void OnDestroy() {
         GameEvents.onCurrentCoinsChanged -= OnCoinsTextChange;
         GameEvents.onCurrentTimeChanged -= OnCurrentTimeChanges;
+        CarEvents.onCarSpeedChanged -= OnCarSpeedChanged;
     }
 
     private void OnCoinsTextChange(int currentCoins, int targetCoins) {
@@ -31,9 +34,13 @@ public class GamePanel : MonoBehaviour {
             return;
         }
 
-        // Format the time to minutes and seconds
         int minutes = Mathf.FloorToInt(currentTime / 60);
         int seconds = Mathf.FloorToInt(currentTime % 60);
         timerText.text = $"Time: {minutes:D2}:{seconds:D2}";
+    }
+
+    private void OnCarSpeedChanged(float speed) {
+        float speedKmh = speed * 3.6f;
+        speedText.text = $"{speedKmh:F0} km/h";
     }
 }
