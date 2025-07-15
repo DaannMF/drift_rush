@@ -19,7 +19,7 @@ public class EndGamePanel : MonoBehaviour {
         exitButton.onClick.AddListener(OnExitButtonClicked);
     }
 
-    void Start() {
+    void OnEnable() {
         GameEvents.onGetIsGameWon?.Invoke(OnGameWonReceived);
     }
 
