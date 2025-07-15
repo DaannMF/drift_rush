@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour {
@@ -39,6 +40,34 @@ public class GameManager : MonoBehaviour {
 
     void Update() {
         HandleCountdownTimer();
+        HandleCheetCodes();
+    }
+
+    private void HandleCheetCodes() {
+        if (Input.GetKeyDown(KeyCode.F1))
+            WinImmediate();
+
+
+        if (Input.GetKeyDown(KeyCode.F2))
+            LoseImmediate();
+
+
+        if (Input.GetKeyDown(KeyCode.F3))
+            StopTimer();
+    }
+
+    private void WinImmediate() {
+        isGameWon = true;
+        GameEvents.onGameFinished?.Invoke();
+    }
+
+    private void LoseImmediate() {
+        isGameWon = false;
+        GameEvents.onGameFinished?.Invoke();
+    }
+
+    private void StopTimer() {
+        gameStarted = !gameStarted;
     }
 
     private void OnDestroy() {

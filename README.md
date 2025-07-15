@@ -67,7 +67,7 @@ El juego utiliza un sistema de eventos desacoplado con managers persistentes:
 
 ## 📁 Estructura del Proyecto
 
-```
+```bash
 Assets/
 ├── Scripts/
 │   ├── Managers/          # Sistemas principales
