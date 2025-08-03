@@ -6,6 +6,7 @@ public abstract class UIEvents {
     public static UnityAction onShowGameUI;
     public static UnityAction onShowPauseMenu;
     public static UnityAction onShowEndGamePanel;
+    public static UnityAction onShowPlayPanel;
     public static UnityAction onHideAllPanels;
     public static UnityAction onForceUIUpdate;
 

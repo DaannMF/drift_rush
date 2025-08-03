@@ -6,6 +6,7 @@ public class CanvasManager : MonoBehaviour {
     [SerializeField] private GameObject pausePanel;
     [SerializeField] private GameObject hudCanvas;
     [SerializeField] private GameObject endGamePanel;
+    [SerializeField] private GameObject playPanel;
 
     private static CanvasManager instance;
 
@@ -33,6 +34,7 @@ public class CanvasManager : MonoBehaviour {
         UIEvents.onShowGameUI += ShowGameUI;
         UIEvents.onShowPauseMenu += ShowPauseMenu;
         UIEvents.onShowEndGamePanel += ShowEndGamePanel;
+        UIEvents.onShowPlayPanel += ShowPlayPanel;
         UIEvents.onHideAllPanels += HideAllPanels;
         GameEvents.onGameFinished += OnGameFinished;
 
@@ -44,6 +46,7 @@ public class CanvasManager : MonoBehaviour {
         UIEvents.onShowGameUI -= ShowGameUI;
         UIEvents.onShowPauseMenu -= ShowPauseMenu;
         UIEvents.onShowEndGamePanel -= ShowEndGamePanel;
+        UIEvents.onShowPlayPanel -= ShowPlayPanel;
         UIEvents.onHideAllPanels -= HideAllPanels;
         GameEvents.onGameFinished -= OnGameFinished;
 
@@ -74,11 +77,20 @@ public class CanvasManager : MonoBehaviour {
         if (endGamePanel) endGamePanel.SetActive(true);
     }
 
+    public void ShowPlayPanel() {
+        HideAllPanels();
+        if (mainPanel) mainPanel.SetActive(true);
+        if (playPanel) playPanel.SetActive(true);
+
+        AudioEvents.onPlayMenuMusic?.Invoke();
+    }
+
     public void HideAllPanels() {
         if (mainPanel != null) mainPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
         if (hudCanvas != null) hudCanvas.SetActive(false);
         if (endGamePanel != null) endGamePanel.SetActive(false);
+        if (playPanel != null) playPanel.SetActive(false);
     }
 
     private void OnGameFinished() {
