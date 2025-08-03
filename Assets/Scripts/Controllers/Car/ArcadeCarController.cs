@@ -122,8 +122,17 @@ public class ArcadeCarController : MonoBehaviour {
     private void ApplyForceToRigidbody() {
         if (Mathf.Abs(currentThrottle) > 0) {
             rb.drag = data.dragOnGround;
-            rb.AddForce(currentThrottle * data.motorTorque * transform.forward * 500f);
+            rb.AddForce(currentThrottle * data.motorTorque * transform.forward);
+        }
 
+        CheckCarEffects();
+
+        CheckDriftSimple();
+    }
+
+
+    private void CheckCarEffects() {
+        if (Mathf.Abs(currentThrottle) > 0) {
             if (isIdle) {
                 isIdle = false;
                 AudioEvents.onCarIdleStop?.Invoke();
@@ -165,8 +174,6 @@ public class ArcadeCarController : MonoBehaviour {
                 AudioEvents.onCarIdle?.Invoke();
             }
         }
-
-        CheckDriftSimple();
     }
 
     private void CheckDriftSimple() {

@@ -4,7 +4,7 @@ public class CanvasManager : MonoBehaviour {
     [Header("UI Panels")]
     [SerializeField] private GameObject mainPanel;
     [SerializeField] private GameObject pausePanel;
-    [SerializeField] private GameObject gamePanel;
+    [SerializeField] private GameObject hudCanvas;
     [SerializeField] private GameObject endGamePanel;
 
     private static CanvasManager instance;
@@ -59,13 +59,13 @@ public class CanvasManager : MonoBehaviour {
 
     public void ShowGameUI() {
         HideAllPanels();
-        if (gamePanel) gamePanel.SetActive(true);
+        if (hudCanvas) hudCanvas.SetActive(true);
     }
 
     public void ShowPauseMenu() {
         if (mainPanel) mainPanel.SetActive(true);
         if (pausePanel) pausePanel.SetActive(true);
-        if (gamePanel) gamePanel.SetActive(false);
+        if (hudCanvas) hudCanvas.SetActive(false);
     }
 
     public void ShowEndGamePanel() {
@@ -77,7 +77,7 @@ public class CanvasManager : MonoBehaviour {
     public void HideAllPanels() {
         if (mainPanel != null) mainPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
-        if (gamePanel != null) gamePanel.SetActive(false);
+        if (hudCanvas != null) hudCanvas.SetActive(false);
         if (endGamePanel != null) endGamePanel.SetActive(false);
     }
 

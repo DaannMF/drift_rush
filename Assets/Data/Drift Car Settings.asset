@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d7b2d8e9f1a4c3eb2f8a1d6c9e4b7a0, type: 3}
   m_Name: Drift Car Settings
   m_EditorClassIdentifier: 
-  motorTorque: 20
-  maxSteerAngle: 180
+  motorTorque: 10000
+  normalSteerAngle: 90
+  driftSteerAngle: 180
   maxWheelRotation: 25
   gravityForce: 10
   dragOnGround: 3
