@@ -2,7 +2,8 @@ using UnityEngine;
 using System;
 
 [System.Serializable]
-public class PlayerLevelSaveData {
+public class PlayerLevelSaveData
+{
     [Header("Save Metadata")]
     public System.Guid id;
     public string saveDate;
@@ -23,7 +24,9 @@ public class PlayerLevelSaveData {
     public bool isPaused;
     public float playTimeElapsed;
 
-    public PlayerLevelSaveData() {
+    public PlayerLevelSaveData()
+    {
+        id = System.Guid.NewGuid();
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         sceneName = "Level1";
         playerPosition = Vector3.zero;
@@ -37,7 +40,9 @@ public class PlayerLevelSaveData {
         playTimeElapsed = 0f;
     }
 
-    public PlayerLevelSaveData(string scene) {
+    public PlayerLevelSaveData(string scene)
+    {
+        id = System.Guid.NewGuid();
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         sceneName = scene;
         playerPosition = Vector3.zero;
@@ -52,17 +57,20 @@ public class PlayerLevelSaveData {
     }
 
     // Convert Vector3 rotation to Quaternion
-    public Quaternion GetPlayerRotationAsQuaternion() {
+    public Quaternion GetPlayerRotationAsQuaternion()
+    {
         return Quaternion.Euler(playerRotation);
     }
 
     // Set rotation from Quaternion
-    public void SetPlayerRotationFromQuaternion(Quaternion rotation) {
+    public void SetPlayerRotationFromQuaternion(Quaternion rotation)
+    {
         playerRotation = rotation.eulerAngles;
     }
 
     // Update save date to current time
-    public void UpdateSaveDate() {
+    public void UpdateSaveDate()
+    {
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     }
 }

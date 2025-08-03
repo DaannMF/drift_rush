@@ -3,7 +3,8 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
 
-public class PlayPanel : MonoBehaviour {
+public class PlayPanel : MonoBehaviour
+{
     [Header("Main Buttons")]
     [SerializeField] private Button newGameButton;
     [SerializeField] private Button continueButton;
@@ -11,25 +12,27 @@ public class PlayPanel : MonoBehaviour {
     [SerializeField] private Button backButton;
 
     [Header("Load Game Panel")]
-    [SerializeField] private GameObject loadGamePanel;
+    [SerializeField] private LoadGamePanel loadGamePanel;
 
-
-    private List<GameObject> saveGameItems = new List<GameObject>();
-
-    void Awake() {
+    void Awake()
+    {
         SetupButtonListeners();
     }
 
-    void OnEnable() {
-        UpdateContinueButtonState();
+    void OnEnable()
+    {
+        InitializeLoadGamePanel();
+        UpdateButtonStates();
         HideSubPanels();
     }
 
-    void OnDestroy() {
+    void OnDestroy()
+    {
         CleanupButtonListeners();
     }
 
-    private void SetupButtonListeners() {
+    private void SetupButtonListeners()
+    {
         if (newGameButton != null)
             newGameButton.onClick.AddListener(OnNewGameButtonClicked);
 
@@ -43,7 +46,8 @@ public class PlayPanel : MonoBehaviour {
             backButton.onClick.AddListener(OnBackButtonClicked);
     }
 
-    private void CleanupButtonListeners() {
+    private void CleanupButtonListeners()
+    {
         if (newGameButton != null)
             newGameButton.onClick.RemoveListener(OnNewGameButtonClicked);
 
@@ -60,128 +64,100 @@ public class PlayPanel : MonoBehaviour {
 
     #region Button Handlers
 
-    private void OnNewGameButtonClicked() {
+    private void OnNewGameButtonClicked()
+    {
         Guid saveId = SaveGameManager.Instance.CreateNewGame();
-        if (saveId != Guid.Empty) {
+        if (saveId != Guid.Empty)
+        {
             StartNewGame();
         }
     }
 
-    private void OnContinueButtonClicked() {
-        if (SaveGameManager.Instance.HasSavedGames()) {
-            if (SaveGameManager.Instance.LoadLastGame()) {
+    private void OnContinueButtonClicked()
+    {
+        if (SaveGameManager.Instance.HasSavedGames())
+        {
+            if (SaveGameManager.Instance.LoadLastGame())
+            {
                 StartLoadedGame();
             }
-            else {
+            else
+            {
                 Debug.LogError("Failed to load last game");
             }
         }
-        else {
+        else
+        {
             Debug.Log("No saved games to continue");
         }
     }
 
-    private void OnLoadGameButtonClicked() {
-        ShowLoadGamePanel();
+    private void OnLoadGameButtonClicked()
+    {
+        if (loadGamePanel != null)
+        {
+            loadGamePanel.ShowPanel();
+        }
     }
 
-    private void OnBackButtonClicked() {
+    private void OnBackButtonClicked()
+    {
         UIEvents.onShowMainMenuPanel?.Invoke();
-    }
-
-    private void OnLoadPanelBackButtonClicked() {
-        HideLoadGamePanel();
     }
 
     #endregion
 
     #region Panel Management
 
-    private void HideSubPanels() {
+    private void InitializeLoadGamePanel()
+    {
         if (loadGamePanel != null)
-            loadGamePanel.SetActive(false);
-    }
-
-    private void ShowLoadGamePanel() {
-        HideSubPanels();
-        if (loadGamePanel != null) {
-            loadGamePanel.SetActive(true);
-            PopulateSaveGamesList();
+        {
+            loadGamePanel.Initialize(OnGameSelected, OnLoadGamePanelBack);
         }
     }
 
-    private void HideLoadGamePanel() {
+    private void HideSubPanels()
+    {
         if (loadGamePanel != null)
-            loadGamePanel.SetActive(false);
-        ClearSaveGamesList();
+            loadGamePanel.HidePanel();
+    }
+
+    private void OnGameSelected(PlayerLevelSaveData saveData)
+    {
+        StartLoadedGame();
+    }
+
+    private void OnLoadGamePanelBack()
+    {
+        if (loadGamePanel != null)
+        {
+            loadGamePanel.HidePanel();
+        }
     }
 
     #endregion
 
-    #region Save Games List Management
+    #region Save Games Management - Delegated to LoadGamePanel
 
-    private void PopulateSaveGamesList() {
-        ClearSaveGamesList();
-
-        List<PlayerLevelSaveData> saveGames = SaveGameManager.Instance.GetAllSaveGames();
-
-        foreach (PlayerLevelSaveData saveData in saveGames) {
-            CreateSaveGameItem(saveData);
-        }
-    }
-
-    private void CreateSaveGameItem(PlayerLevelSaveData saveData) {
-        if (saveGameItemPrefab == null || saveGameContainer == null) return;
-
-        GameObject itemObj = Instantiate(saveGameItemPrefab, saveGameContainer);
-        SaveGameItem saveItem = itemObj.GetComponent<SaveGameItem>();
-
-        if (saveItem != null) {
-            saveItem.Initialize(saveData, OnSaveGameSelected, OnSaveGameDeleted);
-        }
-
-        saveGameItems.Add(itemObj);
-    }
-
-    private void ClearSaveGamesList() {
-        foreach (GameObject item in saveGameItems) {
-            if (item != null) {
-                Destroy(item);
-            }
-        }
-        saveGameItems.Clear();
-    }
-
-    private void OnSaveGameSelected(PlayerLevelSaveData saveData) {
-        // Find the save ID for this save data
-        List<PlayerLevelSaveData> allSaves = SaveGameManager.Instance.GetAllSaveGames();
-        for (int i = 0; i < allSaves.Count; i++) {
-            if (allSaves[i].id == saveData.id && allSaves[i].saveDate == saveData.saveDate) {
-                if (SaveGameManager.Instance.LoadGame(SaveGameManager.Instance.GetAllSaveGames()[i].id)) {
-                    StartLoadedGame();
-                }
-                break;
-            }
-        }
-    }
-
-    private void OnSaveGameDeleted(PlayerLevelSaveData saveData) {
-        PopulateSaveGamesList();
-        UpdateContinueButtonState();
-    }
+    // Save games list management is now handled by LoadGamePanel
+    // This region is kept for backwards compatibility and future extensions
 
     #endregion
 
     #region Game Start
 
-    private void StartNewGame() {
+    private void StartNewGame()
+    {
         // Start loading to Level1
         LoadingManager.Instance.LoadSceneWithLoading("Level1");
     }
 
-    private void StartLoadedGame() {
+    private void StartLoadedGame()
+    {
         PlayerLevelSaveData currentData = SaveGameManager.Instance.GetCurrentGameData();
-        if (currentData != null) {
+        if (currentData != null)
+        {
             // Load the scene from the save data
             LoadingManager.Instance.LoadSceneWithLoading(currentData.sceneName);
         }
@@ -191,11 +167,24 @@ public class PlayPanel : MonoBehaviour {
 
     #region UI State Management
 
-    private void UpdateContinueButtonState() {
-        if (continueButton != null) {
-            bool hasSavedGames = SaveGameManager.Instance.HasSavedGames();
-            continueButton.gameObject.SetActive(hasSavedGames);
+    private void UpdateButtonStates()
+    {
+        bool hasSavedGames = SaveGameManager.Instance.HasSavedGames();
+
+        if (continueButton != null)
+        {
+            continueButton.interactable = hasSavedGames;
         }
+
+        if (loadGameButton != null)
+        {
+            loadGameButton.interactable = hasSavedGames;
+        }
+    }
+
+    public void RefreshButtonStates()
+    {
+        UpdateButtonStates();
     }
 
     #endregion
