@@ -81,6 +81,10 @@ public class GameManager : MonoBehaviour {
         GameEvents.onInitializeLevel += InitializeLevel;
         UIEvents.onForceUIUpdate += ForceUIUpdate;
         GameEvents.onGetIsGameWon += HandleGetIsGameWon;
+        GameEvents.onGetCurrentCoins += HandleGetCurrentCoins;
+        GameEvents.onGetTimeRemaining += HandleGetRemainingTime;
+        GameEvents.onSetCurrentCoins += SetCurrentCoinsFromLoad;
+        GameEvents.onSetTimeRemaining += SetRemainingTimeFromLoad;
     }
 
     private void UnsubscribeFromEvents() {
@@ -90,6 +94,10 @@ public class GameManager : MonoBehaviour {
         GameEvents.onInitializeLevel -= InitializeLevel;
         UIEvents.onForceUIUpdate -= ForceUIUpdate;
         GameEvents.onGetIsGameWon -= HandleGetIsGameWon;
+        GameEvents.onGetCurrentCoins -= HandleGetCurrentCoins;
+        GameEvents.onGetTimeRemaining -= HandleGetRemainingTime;
+        GameEvents.onSetCurrentCoins -= SetCurrentCoinsFromLoad;
+        GameEvents.onSetTimeRemaining -= SetRemainingTimeFromLoad;
     }
 
     public void InitializeLevel(int levelTargetCoins, float levelTimeLimit) {
@@ -178,5 +186,21 @@ public class GameManager : MonoBehaviour {
 
     private void HandleGetIsGameWon(System.Action<bool> callback) {
         callback?.Invoke(isGameWon);
+    }
+
+    private void HandleGetCurrentCoins(System.Action<int> callback) {
+        callback?.Invoke(currentCoins);
+    }
+
+    private void HandleGetRemainingTime(System.Action<float> callback) {
+        callback?.Invoke(currentTime);
+    }
+
+    private void SetCurrentCoinsFromLoad(int coins) {
+        currentCoins = coins;
+    }
+
+    private void SetRemainingTimeFromLoad(float time) {
+        currentTime = time;
     }
 }

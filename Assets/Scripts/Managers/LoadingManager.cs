@@ -2,15 +2,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
-public class LoadingManager : MonoBehaviour
-{
+public class LoadingManager : MonoBehaviour {
     private static LoadingManager instance;
-    public static LoadingManager Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
+    public static LoadingManager Instance {
+        get {
+            if (instance == null) {
                 GameObject go = new GameObject("LoadingManager");
                 instance = go.AddComponent<LoadingManager>();
                 DontDestroyOnLoad(go);
@@ -25,23 +21,18 @@ public class LoadingManager : MonoBehaviour
 
     private bool isLoading = false;
 
-    private void Awake()
-    {
-        if (instance == null)
-        {
+    private void Awake() {
+        if (instance == null) {
             instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else if (instance != this)
-        {
+        else if (instance != this) {
             Destroy(gameObject);
         }
     }
 
-    public void LoadSceneWithLoading(string sceneName)
-    {
-        if (isLoading)
-        {
+    public void LoadSceneWithLoading(string sceneName) {
+        if (isLoading) {
             Debug.LogWarning("Already loading a scene!");
             return;
         }
@@ -49,10 +40,8 @@ public class LoadingManager : MonoBehaviour
         StartCoroutine(LoadSceneCoroutine(sceneName));
     }
 
-    public void LoadSceneWithLoading(int sceneIndex)
-    {
-        if (isLoading)
-        {
+    public void LoadSceneWithLoading(int sceneIndex) {
+        if (isLoading) {
             Debug.LogWarning("Already loading a scene!");
             return;
         }
@@ -60,14 +49,12 @@ public class LoadingManager : MonoBehaviour
         StartCoroutine(LoadSceneCoroutine(sceneIndex));
     }
 
-    public void ReloadCurrentScene()
-    {
+    public void ReloadCurrentScene() {
         string currentSceneName = SceneManager.GetActiveScene().name;
         LoadSceneWithLoading(currentSceneName);
     }
 
-    private IEnumerator LoadSceneCoroutine(string sceneName)
-    {
+    private IEnumerator LoadSceneCoroutine(string sceneName) {
         isLoading = true;
 
         // Show loading screen
@@ -75,16 +62,14 @@ public class LoadingManager : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.1f); // Brief delay to ensure UI is visible
 
-        if (useRealLoadingProgress)
-        {
+        if (useRealLoadingProgress) {
             // Load scene asynchronously
             AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
             asyncLoad.allowSceneActivation = false;
 
             // Start loading with real progress
             bool loadingComplete = false;
-            FakeLoadingBar.Instance.StartFakeLoadingWithRealProgress(asyncLoad, () =>
-            {
+            FakeLoadingBar.Instance.StartFakeLoadingWithRealProgress(asyncLoad, () => {
                 loadingComplete = true;
             });
 
@@ -97,12 +82,10 @@ public class LoadingManager : MonoBehaviour
             // Wait for scene to actually load
             yield return new WaitUntil(() => asyncLoad.isDone);
         }
-        else
-        {
+        else {
             // Use fake loading
             bool loadingComplete = false;
-            FakeLoadingBar.Instance.StartFakeLoading(() =>
-            {
+            FakeLoadingBar.Instance.StartFakeLoading(() => {
                 loadingComplete = true;
             });
 
@@ -120,8 +103,7 @@ public class LoadingManager : MonoBehaviour
         FakeLoadingBar.Instance.HideLoadingScreen();
 
         // Apply loaded game data if we have any
-        if (SaveGameManager.Instance.GetCurrentGameData() != null)
-        {
+        if (SaveGameManager.Instance.GetCurrentGameData() != null) {
             // Wait one frame for scene to initialize
             yield return null;
             SaveGameManager.Instance.ApplyGameDataToScene();
@@ -132,8 +114,7 @@ public class LoadingManager : MonoBehaviour
         Debug.Log($"Scene loaded: {sceneName}");
     }
 
-    private IEnumerator LoadSceneCoroutine(int sceneIndex)
-    {
+    private IEnumerator LoadSceneCoroutine(int sceneIndex) {
         isLoading = true;
 
         // Show loading screen
@@ -141,16 +122,14 @@ public class LoadingManager : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.1f);
 
-        if (useRealLoadingProgress)
-        {
+        if (useRealLoadingProgress) {
             // Load scene asynchronously
             AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneIndex);
             asyncLoad.allowSceneActivation = false;
 
             // Start loading with real progress
             bool loadingComplete = false;
-            FakeLoadingBar.Instance.StartFakeLoadingWithRealProgress(asyncLoad, () =>
-            {
+            FakeLoadingBar.Instance.StartFakeLoadingWithRealProgress(asyncLoad, () => {
                 loadingComplete = true;
             });
 
@@ -163,12 +142,10 @@ public class LoadingManager : MonoBehaviour
             // Wait for scene to actually load
             yield return new WaitUntil(() => asyncLoad.isDone);
         }
-        else
-        {
+        else {
             // Use fake loading
             bool loadingComplete = false;
-            FakeLoadingBar.Instance.StartFakeLoading(() =>
-            {
+            FakeLoadingBar.Instance.StartFakeLoading(() => {
                 loadingComplete = true;
             });
 
@@ -186,8 +163,7 @@ public class LoadingManager : MonoBehaviour
         FakeLoadingBar.Instance.HideLoadingScreen();
 
         // Apply loaded game data if we have any
-        if (SaveGameManager.Instance.GetCurrentGameData() != null)
-        {
+        if (SaveGameManager.Instance.GetCurrentGameData() != null) {
             // Wait one frame for scene to initialize
             yield return null;
             SaveGameManager.Instance.ApplyGameDataToScene();
@@ -198,13 +174,11 @@ public class LoadingManager : MonoBehaviour
         Debug.Log($"Scene loaded with index: {sceneIndex}");
     }
 
-    public bool IsLoading()
-    {
+    public bool IsLoading() {
         return isLoading;
     }
 
-    public void SetUseRealLoadingProgress(bool useReal)
-    {
+    public void SetUseRealLoadingProgress(bool useReal) {
         useRealLoadingProgress = useReal;
     }
 }

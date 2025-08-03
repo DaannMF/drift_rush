@@ -2,16 +2,13 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using System;
 
-public class SaveGameManager : MonoBehaviour
-{
+public class SaveGameManager : MonoBehaviour {
     private static SaveGameManager instance;
-    public static SaveGameManager Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
+    public static SaveGameManager Instance {
+        get {
+            if (instance == null) {
                 GameObject go = new GameObject("SaveGameManager");
                 instance = go.AddComponent<SaveGameManager>();
                 DontDestroyOnLoad(go);
@@ -27,19 +24,16 @@ public class SaveGameManager : MonoBehaviour
     private const string SAVE_DATA_PREFIX = "SaveGame_";
     private const string LAST_SAVE_KEY = "LastSaveIndex";
 
-    private List<string> saveGameIds = new List<string>();
+    private List<Guid> saveGameIds = new();
     private PlayerLevelSaveData currentGameData;
 
-    private void Awake()
-    {
-        if (instance == null)
-        {
+    private void Awake() {
+        if (instance == null) {
             instance = this;
             DontDestroyOnLoad(gameObject);
             LoadSaveGamesList();
         }
-        else if (instance != this)
-        {
+        else if (instance != this) {
             Destroy(gameObject);
         }
     }
@@ -47,10 +41,9 @@ public class SaveGameManager : MonoBehaviour
     #region Save Game Management
 
     // Create a new game save
-    public string CreateNewGame(string saveName = "New Game")
-    {
-        string saveId = System.Guid.NewGuid().ToString();
-        PlayerLevelSaveData newSave = new PlayerLevelSaveData(saveName, "Level1");
+    public Guid CreateNewGame() {
+        Guid saveId = System.Guid.NewGuid();
+        PlayerLevelSaveData newSave = new PlayerLevelSaveData("Level1");
 
         // Save the game data
         SaveGameData(saveId, newSave);
@@ -61,18 +54,16 @@ public class SaveGameManager : MonoBehaviour
 
         // Set as current game and last save
         currentGameData = newSave;
-        PlayerPrefs.SetString(LAST_SAVE_KEY, saveId);
+        PlayerPrefs.SetString(LAST_SAVE_KEY, saveId.ToString());
         PlayerPrefs.Save();
 
-        Debug.Log($"Created new game: {saveName} with ID: {saveId}");
+        Debug.Log($"Created new game with ID: {saveId}");
         return saveId;
     }
 
     // Save current game state
-    public void SaveCurrentGame()
-    {
-        if (currentGameData == null)
-        {
+    public void SaveCurrentGame() {
+        if (currentGameData == null) {
             Debug.LogWarning("No current game data to save!");
             return;
         }
@@ -81,44 +72,39 @@ public class SaveGameManager : MonoBehaviour
         UpdateCurrentGameDataFromScene();
 
         // Find the save ID for current game
-        string currentSaveId = GetCurrentSaveId();
-        if (!string.IsNullOrEmpty(currentSaveId))
-        {
+        Guid currentSaveId = GetCurrentSaveId();
+        if (currentSaveId != Guid.Empty) {
             SaveGameData(currentSaveId, currentGameData);
-            Debug.Log($"Game saved: {currentGameData.saveName}");
+            Debug.Log($"Game saved: {currentGameData.id}");
         }
     }
 
     // Load a specific save game
-    public bool LoadGame(string saveId)
-    {
-        PlayerLevelSaveData saveData = LoadGameData(saveId);
-        if (saveData != null)
-        {
+    public bool LoadGame(Guid id) {
+        PlayerLevelSaveData saveData = LoadGameData(id);
+        if (saveData != null) {
             currentGameData = saveData;
-            PlayerPrefs.SetString(LAST_SAVE_KEY, saveId);
+            PlayerPrefs.SetString(LAST_SAVE_KEY, id.ToString());
             PlayerPrefs.Save();
 
-            Debug.Log($"Loaded game: {saveData.saveName}");
+            Debug.Log($"Loaded game: {saveData.id}");
             return true;
         }
 
-        Debug.LogError($"Failed to load game with ID: {saveId}");
+        Debug.LogError($"Failed to load game with ID: {id}");
         return false;
     }
 
     // Load the last played game
-    public bool LoadLastGame()
-    {
+    public bool LoadLastGame() {
         string lastSaveId = PlayerPrefs.GetString(LAST_SAVE_KEY, "");
-        if (!string.IsNullOrEmpty(lastSaveId) && saveGameIds.Contains(lastSaveId))
-        {
-            return LoadGame(lastSaveId);
+        Guid lastId = new(lastSaveId);
+        if (!string.IsNullOrEmpty(lastSaveId) && saveGameIds.Contains(lastId)) {
+            return LoadGame(lastId);
         }
 
         // If no last save or it doesn't exist, load the most recent save
-        if (saveGameIds.Count > 0)
-        {
+        if (saveGameIds.Count > 0) {
             return LoadGame(saveGameIds.Last());
         }
 
@@ -127,10 +113,8 @@ public class SaveGameManager : MonoBehaviour
     }
 
     // Delete a save game
-    public bool DeleteGame(string saveId)
-    {
-        if (saveGameIds.Contains(saveId))
-        {
+    public bool DeleteGame(Guid saveId) {
+        if (saveGameIds.Contains(saveId)) {
             saveGameIds.Remove(saveId);
             PlayerPrefs.DeleteKey(SAVE_DATA_PREFIX + saveId);
             SaveSaveGamesList();
@@ -147,15 +131,12 @@ public class SaveGameManager : MonoBehaviour
     #region Data Access
 
     // Get list of all save games
-    public List<PlayerLevelSaveData> GetAllSaveGames()
-    {
+    public List<PlayerLevelSaveData> GetAllSaveGames() {
         List<PlayerLevelSaveData> saves = new List<PlayerLevelSaveData>();
 
-        foreach (string saveId in saveGameIds)
-        {
+        foreach (Guid saveId in saveGameIds) {
             PlayerLevelSaveData saveData = LoadGameData(saveId);
-            if (saveData != null)
-            {
+            if (saveData != null) {
                 saves.Add(saveData);
             }
         }
@@ -164,21 +145,13 @@ public class SaveGameManager : MonoBehaviour
     }
 
     // Get current game data
-    public PlayerLevelSaveData GetCurrentGameData()
-    {
+    public PlayerLevelSaveData GetCurrentGameData() {
         return currentGameData;
     }
 
     // Check if there are any saved games
-    public bool HasSavedGames()
-    {
+    public bool HasSavedGames() {
         return saveGameIds.Count > 0;
-    }
-
-    // Get save game by ID
-    public PlayerLevelSaveData GetSaveGameById(string saveId)
-    {
-        return LoadGameData(saveId);
     }
 
     #endregion
@@ -186,8 +159,7 @@ public class SaveGameManager : MonoBehaviour
     #region Scene Integration
 
     // Update current game data from the current scene
-    private void UpdateCurrentGameDataFromScene()
-    {
+    private void UpdateCurrentGameDataFromScene() {
         if (currentGameData == null) return;
 
         // Update scene name
@@ -198,41 +170,28 @@ public class SaveGameManager : MonoBehaviour
 
         // Try to get player data from scene
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
+        if (player != null) {
             currentGameData.playerPosition = player.transform.position;
             currentGameData.SetPlayerRotationFromQuaternion(player.transform.rotation);
         }
 
-        // Try to get game state from GameManager
-        if (GameManager.Instance != null)
-        {
-            // This would need to be implemented in GameManager
-            // currentGameData.coins = GameManager.Instance.GetCurrentCoins();
-            // currentGameData.timeRemaining = GameManager.Instance.GetTimeRemaining();
-        }
+        GameEvents.onGetCurrentCoins?.Invoke(OnCurrentCoinsReceived);
+        GameEvents.onGetTimeRemaining?.Invoke(OnRemainingTimeReceived);
     }
 
     // Apply loaded game data to current scene
-    public void ApplyGameDataToScene()
-    {
+    public void ApplyGameDataToScene() {
         if (currentGameData == null) return;
 
         // Apply player position and rotation
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            player.transform.position = currentGameData.playerPosition;
-            player.transform.rotation = currentGameData.GetPlayerRotationAsQuaternion();
+        if (player != null) {
+            player.transform.SetPositionAndRotation(currentGameData.playerPosition, currentGameData.GetPlayerRotationAsQuaternion());
         }
 
-        // Apply game state to GameManager
-        if (GameManager.Instance != null)
-        {
-            // This would need to be implemented in GameManager
-            // GameManager.Instance.SetCoins(currentGameData.coins);
-            // GameManager.Instance.SetTimeRemaining(currentGameData.timeRemaining);
-        }
+
+        GameEvents.onSetCurrentCoins?.Invoke(currentGameData.coins);
+        GameEvents.onSetTimeRemaining?.Invoke(currentGameData.timeRemaining);
 
         Debug.Log($"Applied save data to scene: {currentGameData.sceneName}");
     }
@@ -241,55 +200,55 @@ public class SaveGameManager : MonoBehaviour
 
     #region Internal Methods
 
-    private void SaveGameData(string saveId, PlayerLevelSaveData data)
-    {
+    private void SaveGameData(Guid id, PlayerLevelSaveData data) {
         string json = JsonUtility.ToJson(data);
-        PlayerPrefs.SetString(SAVE_DATA_PREFIX + saveId, json);
+        PlayerPrefs.SetString(SAVE_DATA_PREFIX + id.ToString(), json);
         PlayerPrefs.Save();
     }
 
-    private PlayerLevelSaveData LoadGameData(string saveId)
-    {
-        string json = PlayerPrefs.GetString(SAVE_DATA_PREFIX + saveId, "");
-        if (!string.IsNullOrEmpty(json))
-        {
+    private PlayerLevelSaveData LoadGameData(Guid id) {
+        string json = PlayerPrefs.GetString(SAVE_DATA_PREFIX + id.ToString(), "");
+        if (!string.IsNullOrEmpty(json)) {
             return JsonUtility.FromJson<PlayerLevelSaveData>(json);
         }
         return null;
     }
 
-    private void SaveSaveGamesList()
-    {
+    private void SaveSaveGamesList() {
         string json = JsonUtility.ToJson(new SaveGamesList { saveIds = saveGameIds });
         PlayerPrefs.SetString(SAVE_LIST_KEY, json);
         PlayerPrefs.Save();
     }
 
-    private void LoadSaveGamesList()
-    {
+    private void LoadSaveGamesList() {
         string json = PlayerPrefs.GetString(SAVE_LIST_KEY, "");
-        if (!string.IsNullOrEmpty(json))
-        {
+        if (!string.IsNullOrEmpty(json)) {
             SaveGamesList savesList = JsonUtility.FromJson<SaveGamesList>(json);
-            saveGameIds = savesList.saveIds ?? new List<string>();
+            saveGameIds = savesList.saveIds ?? new List<Guid>();
         }
     }
 
-    private string GetCurrentSaveId()
-    {
+    private Guid GetCurrentSaveId() {
         string lastSaveId = PlayerPrefs.GetString(LAST_SAVE_KEY, "");
-        if (!string.IsNullOrEmpty(lastSaveId) && saveGameIds.Contains(lastSaveId))
-        {
-            return lastSaveId;
+        Guid id = new(lastSaveId);
+        if (!string.IsNullOrEmpty(lastSaveId) && saveGameIds.Contains(id)) {
+            return id;
         }
-        return "";
+        return Guid.Empty;
+    }
+
+    private void OnCurrentCoinsReceived(int coins) {
+        currentGameData.coins = coins;
+    }
+
+    private void OnRemainingTimeReceived(float time) {
+        currentGameData.timeRemaining = time;
     }
 
     #endregion
 }
 
 [System.Serializable]
-public class SaveGamesList
-{
-    public List<string> saveIds = new List<string>();
+public class SaveGamesList {
+    public List<Guid> saveIds = new();
 }

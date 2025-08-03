@@ -10,4 +10,9 @@ public abstract class GameEvents {
     public static UnityAction onGameFinished;
 
     public static UnityAction<System.Action<bool>> onGetIsGameWon;
+    public static UnityAction<System.Action<int>> onGetCurrentCoins;
+    public static UnityAction<System.Action<float>> onGetTimeRemaining;
+
+    public static UnityAction<int> onSetCurrentCoins;
+    public static UnityAction<float> onSetTimeRemaining;
 }

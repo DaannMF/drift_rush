@@ -1,83 +1,68 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MainPanelPanel : MonoBehaviour
-{
+public class MainPanelPanel : MonoBehaviour {
 
     [Header("UI Elements")]
     [SerializeField] Button backButton;
     [SerializeField] Button exitButton;
     [SerializeField] Button saveButton;
 
-    void Awake()
-    {
+    void Awake() {
 #if UNITY_WEBGL
         exitButton.gameObject.SetActive(false);
 #else
         exitButton.onClick.AddListener(OnExitButtonClicked);
 #endif
 
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "MainMenu")
-        {
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "MainMenu") {
             backButton.gameObject.SetActive(true);
             backButton.onClick.AddListener(OnBackButtonClicked);
 
             // Show save button only when not in main menu and we have current game data
-            if (saveButton != null)
-            {
+            if (saveButton != null) {
                 bool hasSaveData = SaveGameManager.Instance.GetCurrentGameData() != null;
                 saveButton.gameObject.SetActive(hasSaveData);
-                if (hasSaveData)
-                {
+                if (hasSaveData) {
                     saveButton.onClick.AddListener(OnSaveButtonClicked);
                 }
             }
         }
-        else
-        {
+        else {
             backButton.gameObject.SetActive(false);
-            if (saveButton != null)
-            {
+            if (saveButton != null) {
                 saveButton.gameObject.SetActive(false);
             }
         }
     }
 
-    void OnEnable()
-    {
-        LevelEvents.onGetIsInLevel?.Invoke(isInLevel =>
-        {
-            if (isInLevel)
-            {
+    void OnEnable() {
+        LevelEvents.onGetIsInLevel?.Invoke(isInLevel => {
+            if (isInLevel) {
                 GameEvents.onPauseGame?.Invoke();
             }
         });
     }
 
-    void OnDestroy()
-    {
+    void OnDestroy() {
 #if !UNITY_WEBGL
         exitButton.onClick.RemoveListener(OnExitButtonClicked);
 #endif
 
-        if (backButton != null)
-        {
+        if (backButton != null) {
             backButton.onClick.RemoveListener(OnBackButtonClicked);
         }
 
-        if (saveButton != null)
-        {
+        if (saveButton != null) {
             saveButton.onClick.RemoveListener(OnSaveButtonClicked);
         }
     }
 
-    private void OnBackButtonClicked()
-    {
+    private void OnBackButtonClicked() {
         LevelEvents.onLoadMainMenu?.Invoke();
     }
 
-    private void OnSaveButtonClicked()
-    {
+    private void OnSaveButtonClicked() {
         SaveGameManager.Instance.SaveCurrentGame();
 
         // You could show a confirmation message here
@@ -87,8 +72,7 @@ public class MainPanelPanel : MonoBehaviour
         ShowSaveConfirmation();
     }
 
-    private void OnExitButtonClicked()
-    {
+    private void OnExitButtonClicked() {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log("Exiting game");
 #endif
@@ -99,8 +83,7 @@ public class MainPanelPanel : MonoBehaviour
 #endif
     }
 
-    private void ShowSaveConfirmation()
-    {
+    private void ShowSaveConfirmation() {
         // This could trigger a UI animation or message
         // For now, just log the success
         Debug.Log("Save confirmation shown");

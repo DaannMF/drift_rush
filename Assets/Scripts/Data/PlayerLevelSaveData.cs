@@ -2,16 +2,15 @@ using UnityEngine;
 using System;
 
 [System.Serializable]
-public class PlayerLevelSaveData
-{
+public class PlayerLevelSaveData {
     [Header("Save Metadata")]
-    public string saveName;
+    public System.Guid id;
     public string saveDate;
     public string sceneName;
 
     [Header("Player State")]
     public Vector3 playerPosition;
-    public Vector3 playerRotation; // Using Vector3 for easier serialization than Quaternion
+    public Vector3 playerRotation;
     public int coins;
     public float timeRemaining;
 
@@ -24,10 +23,7 @@ public class PlayerLevelSaveData
     public bool isPaused;
     public float playTimeElapsed;
 
-    public PlayerLevelSaveData()
-    {
-        // Default constructor for new games
-        saveName = "New Game";
+    public PlayerLevelSaveData() {
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         sceneName = "Level1";
         playerPosition = Vector3.zero;
@@ -41,9 +37,7 @@ public class PlayerLevelSaveData
         playTimeElapsed = 0f;
     }
 
-    public PlayerLevelSaveData(string name, string scene)
-    {
-        saveName = name;
+    public PlayerLevelSaveData(string scene) {
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         sceneName = scene;
         playerPosition = Vector3.zero;
@@ -58,26 +52,17 @@ public class PlayerLevelSaveData
     }
 
     // Convert Vector3 rotation to Quaternion
-    public Quaternion GetPlayerRotationAsQuaternion()
-    {
+    public Quaternion GetPlayerRotationAsQuaternion() {
         return Quaternion.Euler(playerRotation);
     }
 
     // Set rotation from Quaternion
-    public void SetPlayerRotationFromQuaternion(Quaternion rotation)
-    {
+    public void SetPlayerRotationFromQuaternion(Quaternion rotation) {
         playerRotation = rotation.eulerAngles;
     }
 
-    // Get a display-friendly save info
-    public string GetSaveDisplayInfo()
-    {
-        return $"{saveName} - {sceneName} - {saveDate}";
-    }
-
     // Update save date to current time
-    public void UpdateSaveDate()
-    {
+    public void UpdateSaveDate() {
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     }
 }
