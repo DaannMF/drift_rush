@@ -12,6 +12,5 @@ public class AutoUIAudioSetup : MonoBehaviour {
         foreach (Button button in GetComponentsInChildren<Button>(includeInactive))
             if (button.GetComponent<UIAudioHandler>() == null)
                 button.gameObject.AddComponent<UIAudioHandler>();
-
     }
 }
