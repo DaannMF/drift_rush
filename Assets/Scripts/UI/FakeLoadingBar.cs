@@ -78,93 +78,6 @@ public class FakeLoadingBar : MonoBehaviour {
         UpdateProgressBar(progress);
     }
 
-    public void StartFakeLoading(System.Action onComplete = null) {
-        StartCoroutine(FakeLoadingCoroutine(onComplete));
-    }
-
-    public void StartFakeLoadingWithRealProgress(AsyncOperation asyncOperation, System.Action onComplete = null) {
-        StartCoroutine(LoadingWithRealProgressCoroutine(asyncOperation, onComplete));
-    }
-
-    private IEnumerator FakeLoadingCoroutine(System.Action onComplete) {
-        float loadingTime = Random.Range(minLoadingTime, maxLoadingTime);
-        float elapsedTime = 0f;
-
-        // Show random loading messages
-        int currentMessageIndex = 0;
-        float messageChangeInterval = loadingTime / loadingMessages.Length;
-        float nextMessageTime = messageChangeInterval;
-
-        while (elapsedTime < loadingTime) {
-            elapsedTime += Time.unscaledDeltaTime;
-
-            // Update progress using curve
-            float normalizedTime = elapsedTime / loadingTime;
-            float progress = loadingCurve.Evaluate(normalizedTime);
-
-            UpdateProgressBar(progress);
-
-            // Change loading message
-            if (elapsedTime >= nextMessageTime && currentMessageIndex < loadingMessages.Length) {
-                UpdateLoadingMessage(loadingMessages[currentMessageIndex]);
-                currentMessageIndex++;
-                nextMessageTime += messageChangeInterval;
-            }
-
-            yield return null;
-        }
-
-        // Ensure we reach 100%
-        UpdateProgressBar(1f);
-        UpdateLoadingMessage("Complete!");
-
-        yield return new WaitForSecondsRealtime(0.5f); // Brief pause at 100%
-
-        onComplete?.Invoke();
-    }
-
-    private IEnumerator LoadingWithRealProgressCoroutine(AsyncOperation asyncOperation, System.Action onComplete) {
-        float fakeProgress = 0f;
-        float realProgress = 0f;
-
-        int currentMessageIndex = 0;
-        float messageTimer = 0f;
-        float messageChangeInterval = 1.5f;
-
-        while (!asyncOperation.isDone || fakeProgress < 1f) {
-            // Get real loading progress (clamped to 0.9 until done)
-            realProgress = Mathf.Clamp01(asyncOperation.progress / 0.9f);
-
-            // Smoothly interpolate fake progress toward real progress
-            fakeProgress = Mathf.MoveTowards(fakeProgress, realProgress, Time.unscaledDeltaTime * 0.5f);
-
-            // If real loading is done but fake isn't at 100%, speed up fake progress
-            if (asyncOperation.isDone && fakeProgress < 1f) {
-                fakeProgress = Mathf.MoveTowards(fakeProgress, 1f, Time.unscaledDeltaTime * 2f);
-            }
-
-            UpdateProgressBar(fakeProgress);
-
-            // Update loading messages
-            messageTimer += Time.unscaledDeltaTime;
-            if (messageTimer >= messageChangeInterval && currentMessageIndex < loadingMessages.Length) {
-                UpdateLoadingMessage(loadingMessages[currentMessageIndex]);
-                currentMessageIndex = (currentMessageIndex + 1) % loadingMessages.Length;
-                messageTimer = 0f;
-            }
-
-            yield return null;
-        }
-
-        // Ensure we reach 100%
-        UpdateProgressBar(1f);
-        UpdateLoadingMessage("Complete!");
-
-        yield return new WaitForSecondsRealtime(0.3f);
-
-        onComplete?.Invoke();
-    }
-
     private void UpdateProgressBar(float progress) {
         progress = Mathf.Clamp01(progress);
 
@@ -188,9 +101,5 @@ public class FakeLoadingBar : MonoBehaviour {
         if (loadingMessages.Length > 0) {
             UpdateLoadingMessage(loadingMessages[0]);
         }
-    }
-
-    public bool IsLoading() {
-        return loadingPanel != null && loadingPanel.activeInHierarchy;
     }
 }

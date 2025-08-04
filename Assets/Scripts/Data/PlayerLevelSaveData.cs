@@ -4,7 +4,7 @@ using System;
 [System.Serializable]
 public class PlayerLevelSaveData {
     [Header("Save Metadata")]
-    public System.Guid id;
+    public string id;
     public string saveDate;
     public string sceneName;
 
@@ -24,13 +24,13 @@ public class PlayerLevelSaveData {
     public float playTimeElapsed;
 
     public PlayerLevelSaveData() {
-        id = System.Guid.NewGuid();
+        id = System.Guid.NewGuid().ToString();
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         sceneName = "Level1";
         playerPosition = Vector3.zero;
         playerRotation = Vector3.zero;
         coins = 0;
-        timeRemaining = 120f; // Default 2 minutes
+        timeRemaining = 120f;
         targetCoins = 20;
         totalLevelTime = 120f;
         isCompleted = false;
@@ -39,7 +39,7 @@ public class PlayerLevelSaveData {
     }
 
     public PlayerLevelSaveData(string scene) {
-        id = System.Guid.NewGuid();
+        id = System.Guid.NewGuid().ToString();
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         sceneName = scene;
         playerPosition = Vector3.zero;

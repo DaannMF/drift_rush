@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
 
@@ -30,9 +29,8 @@ public class LoadGamePanel : MonoBehaviour {
         GameObject itemObj = Instantiate(saveGameItemPrefab, saveGameContainer);
         SaveGameItem saveItem = itemObj.GetComponent<SaveGameItem>();
 
-        if (saveItem != null) {
+        if (saveItem != null)
             saveItem.Initialize(saveData, OnSaveGameSelected, OnSaveGameDeleted);
-        }
 
         saveGameItems.Add(itemObj);
     }
@@ -42,17 +40,18 @@ public class LoadGamePanel : MonoBehaviour {
             if (item != null) Destroy(item);
 
         saveGameItems.Clear();
+        SaveEvents.onGetAllSaveGames?.Invoke(OnGetSavedGames);
     }
 
     private void OnSaveGameSelected(PlayerLevelSaveData saveData) {
         // Load the selected game
-        SaveEvents.onLoadGame?.Invoke(saveData.id);
+        SaveEvents.onLoadGame?.Invoke(Guid.Parse(saveData.id));
         onGameSelectedCallback?.Invoke(saveData);
     }
 
     private void OnSaveGameDeleted(PlayerLevelSaveData saveData) {
         // Delete the save game
-        SaveEvents.onDeleteGame?.Invoke(saveData.id);
+        SaveEvents.onDeleteGame?.Invoke(Guid.Parse(saveData.id));
         Debug.Log($"Successfully deleted save game: {saveData.id}");
         PopulateSaveGamesList(); // Refresh the list
 
@@ -63,9 +62,8 @@ public class LoadGamePanel : MonoBehaviour {
     private void NotifySaveDeleted() {
         if (transform.parent != null) {
             PlayPanel playPanel = transform.parent.GetComponentInParent<PlayPanel>();
-            if (playPanel != null) {
+            if (playPanel != null)
                 playPanel.RefreshButtonStates();
-            }
         }
     }
 
