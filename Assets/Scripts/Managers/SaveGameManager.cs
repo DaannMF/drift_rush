@@ -45,10 +45,8 @@ public class SaveGameManager : MonoBehaviour
         SaveEvents.onHasSavedGames += OnHasSavedGames;
 
         SaveEvents.onApplySaveDataToScene += ApplyGameDataToScene;
-        SaveEvents.onUpdateCurrentGameDataFromScene += UpdateCurrentGameDataFromScene;
 
-        GameEvents.onGetCurrentCoins += OnGetCurrentCoinsForSave;
-        GameEvents.onGetTimeRemaining += OnGetTimeRemainingForSave;
+
     }
 
     private void UnsubscribeFromEvents()
@@ -64,38 +62,39 @@ public class SaveGameManager : MonoBehaviour
         SaveEvents.onHasSavedGames -= OnHasSavedGames;
 
         SaveEvents.onApplySaveDataToScene -= ApplyGameDataToScene;
-        SaveEvents.onUpdateCurrentGameDataFromScene -= UpdateCurrentGameDataFromScene;
-
-        GameEvents.onGetCurrentCoins -= OnGetCurrentCoinsForSave;
-        GameEvents.onGetTimeRemaining -= OnGetTimeRemainingForSave;
     }
 
-    // Create a new game save
+    // Create a new game save - Step 1: Load scene first, then create save
     private void OnCreateNewGame(System.Action<Guid> callback)
     {
         string sceneName = "Level1";
 
-        // Get level data to create save with correct values
+        Debug.Log("Step 1: Loading Level1 scene for new game...");
+
+        // Step 2: Load scene asynchronously first  
+        LevelEvents.onLoadSceneByName?.Invoke(sceneName);
+
+        // Step 3: After scene loads, create save with scene data
+        StartCoroutine(CreateSaveAfterSceneLoad(sceneName, callback));
+    }
+
+    private System.Collections.IEnumerator CreateSaveAfterSceneLoad(string sceneName, System.Action<Guid> callback)
+    {
+        // Wait for scene to load
+        yield return new WaitUntil(() => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == sceneName);
+        yield return new WaitForEndOfFrame(); // Ensure everything is initialized
+
+        Debug.Log("Step 3: Scene loaded, creating save with current scene data...");
+
+        // Get level data to know target time for new game
         LevelEvents.onGetLevelDataByScene?.Invoke(sceneName, levelData =>
         {
-            PlayerLevelSaveData newSave;
+            float targetTime = levelData != null ? levelData.TimeLimit : 120f;
 
-            if (levelData != null)
-            {
-                // Create save with LevelData values
-                newSave = PlayerLevelSaveData.CreateNewSaveWithLevelData(
-                    sceneName,
-                    levelData.TargetCoins,
-                    levelData.TimeLimit
-                );
-                Debug.Log($"Created new save with LevelData: {levelData.TargetCoins} coins, {levelData.TimeLimit}s");
-            }
-            else
-            {
-                // Fallback to default values if LevelData not found
-                newSave = PlayerLevelSaveData.CreateNewSave(sceneName);
-                Debug.LogWarning($"LevelData not found for {sceneName}, using default values");
-            }
+            // Create save with current scene position and initial values
+            PlayerLevelSaveData newSave = PlayerLevelSaveData.CreateFromCurrentScene(sceneName);
+            newSave.coins = 0; // New game starts with 0 coins
+            newSave.timeRemaining = targetTime; // New game starts with full time
 
             // Save the game data
             SaveGameData(newSave);
@@ -109,12 +108,16 @@ public class SaveGameManager : MonoBehaviour
             PlayerPrefs.SetString(LAST_SAVE_KEY, newSave.id);
             PlayerPrefs.Save();
 
-            Debug.Log($"Created new game with ID: {newSave.id}");
+            Debug.Log($"Step 4: New game save created with ID: {newSave.id}, Coins: {newSave.coins}, Time: {newSave.timeRemaining}");
+
+            // Step 5: Show game HUD
+            UIEvents.onShowGameUI?.Invoke();
+
             callback?.Invoke(Guid.Parse(newSave.id));
         });
     }
 
-    // Save current game state
+    // Save current game state during gameplay - overwrites current save
     public void SaveCurrentGame()
     {
         if (currentGameData == null)
@@ -123,21 +126,42 @@ public class SaveGameManager : MonoBehaviour
             return;
         }
 
-        // Update current game state from scene
-        UpdateCurrentGameDataFromScene();
+        Debug.Log("Saving current game progress...");
 
-        // Find the save ID for current game
-        Guid currentSaveId = GetCurrentSaveId();
-        if (currentSaveId != Guid.Empty)
+        // Update save data with current scene state
+        currentGameData.saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        currentGameData.sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
+        // Update player position and rotation
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
         {
-            SaveGameData(currentGameData);
-            Debug.Log($"Game saved: {currentGameData.id}");
+            currentGameData.playerPosition = player.transform.position;
+            currentGameData.playerRotation = player.transform.rotation.eulerAngles;
         }
+
+        // Update game state (coins and time) using events
+        GameEvents.onGetCurrentCoins?.Invoke(coins =>
+        {
+            currentGameData.coins = coins;
+
+            GameEvents.onGetTimeRemaining?.Invoke(time =>
+            {
+                currentGameData.timeRemaining = time;
+
+                // Save updated data
+                SaveGameData(currentGameData);
+
+                Debug.Log($"Game saved successfully - Scene: {currentGameData.sceneName}, Coins: {currentGameData.coins}, Time: {currentGameData.timeRemaining}");
+            });
+        });
     }
 
     // Load a specific save game
     private void OnLoadGame(Guid id)
     {
+        Debug.Log("Step 1: Loading save data from PlayerPrefs...");
+
         PlayerLevelSaveData saveData = LoadGameData(id);
         if (saveData != null)
         {
@@ -145,12 +169,37 @@ public class SaveGameManager : MonoBehaviour
             PlayerPrefs.SetString(LAST_SAVE_KEY, id.ToString());
             PlayerPrefs.Save();
 
-            Debug.Log($"Loaded game: {saveData.id}");
+            Debug.Log($"Step 2: Save loaded, loading scene {saveData.sceneName}...");
+
+            // Step 2: Load the scene from save data
+            LevelEvents.onLoadSceneByName?.Invoke(saveData.sceneName);
+
+            // Step 3: After scene loads, apply save data
+            StartCoroutine(ApplySaveAfterSceneLoad());
         }
         else
         {
             Debug.LogError($"Failed to load game with ID: {id}");
         }
+    }
+
+    private System.Collections.IEnumerator ApplySaveAfterSceneLoad()
+    {
+        if (currentGameData == null) yield break;
+
+        // Wait for scene to load
+        yield return new WaitUntil(() => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == currentGameData.sceneName);
+        yield return new WaitForEndOfFrame(); // Ensure everything is initialized
+
+        Debug.Log("Step 3: Scene loaded, applying save data to GameManager...");
+
+        // Step 3: Apply save data to scene (position, coins, time)
+        ApplyGameDataToScene();
+
+        // Step 4: Show game HUD
+        UIEvents.onShowGameUI?.Invoke();
+
+        Debug.Log($"Step 4: Game loaded successfully - Coins: {currentGameData.coins}, Time: {currentGameData.timeRemaining}");
     }
 
     // Load the last played game
@@ -213,29 +262,6 @@ public class SaveGameManager : MonoBehaviour
         callback?.Invoke(saveGameIds.Count > 0);
     }
 
-    // Update current game data from the current scene
-    private void UpdateCurrentGameDataFromScene()
-    {
-        if (currentGameData == null) return;
-
-        // Update scene name
-        currentGameData.sceneName = SceneManager.GetActiveScene().name;
-
-        // Update save date
-        currentGameData.UpdateSaveDate();
-
-        // Try to get player data from scene
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            currentGameData.playerPosition = player.transform.position;
-            currentGameData.SetPlayerRotationFromQuaternion(player.transform.rotation);
-        }
-
-        GameEvents.onGetCurrentCoins?.Invoke(OnCurrentCoinsReceived);
-        GameEvents.onGetTimeRemaining?.Invoke(OnRemainingTimeReceived);
-    }
-
     // Apply loaded game data to current scene
     public void ApplyGameDataToScene()
     {
@@ -246,17 +272,17 @@ public class SaveGameManager : MonoBehaviour
         if (player != null)
         {
             player.transform.SetPositionAndRotation(currentGameData.playerPosition, currentGameData.GetPlayerRotationAsQuaternion());
+            Debug.Log($"Player position set to: {currentGameData.playerPosition}");
         }
 
-        // Important: Apply save data AFTER level initialization
-        // This ensures the HUD shows: currentCoins/targetCoins and currentTime correctly
+        // Apply game state (coins and time) to GameManager
         GameEvents.onSetCurrentCoins?.Invoke(currentGameData.coins);
         GameEvents.onSetTimeRemaining?.Invoke(currentGameData.timeRemaining);
 
         // Force UI update to show the correct values
         UIEvents.onForceUIUpdate?.Invoke();
 
-        Debug.Log($"Applied save data to scene: {currentGameData.sceneName} - Coins: {currentGameData.coins}/{currentGameData.targetCoins}, Time: {currentGameData.timeRemaining}");
+        Debug.Log($"Applied save data to scene: {currentGameData.sceneName} - Coins: {currentGameData.coins}, Time: {currentGameData.timeRemaining}");
     }
 
     private void SaveGameData(PlayerLevelSaveData data)
@@ -315,27 +341,7 @@ public class SaveGameManager : MonoBehaviour
         return Guid.Empty;
     }
 
-    private void OnGetCurrentCoinsForSave(System.Action<int> callback)
-    {
-        callback?.Invoke(currentGameData?.coins ?? 0);
-    }
 
-    private void OnGetTimeRemainingForSave(System.Action<float> callback)
-    {
-        callback?.Invoke(currentGameData?.timeRemaining ?? 0f);
-    }
-
-    private void OnCurrentCoinsReceived(int coins)
-    {
-        if (currentGameData != null)
-            currentGameData.coins = coins;
-    }
-
-    private void OnRemainingTimeReceived(float time)
-    {
-        if (currentGameData != null)
-            currentGameData.timeRemaining = time;
-    }
 }
 
 [System.Serializable]
