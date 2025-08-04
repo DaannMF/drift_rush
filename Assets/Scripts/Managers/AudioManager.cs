@@ -15,6 +15,7 @@ public class AudioManager : MonoBehaviour {
     [SerializeField] private AudioSource[] sfxSources;
     [SerializeField] private int sfxSourcesCount = 10;
 
+    private static AudioManager instance = null;
     private Dictionary<ContinuousAudioType, AudioSource> continuousAudioSources;
 
     [Header("Music Clips")]
@@ -49,6 +50,13 @@ public class AudioManager : MonoBehaviour {
     private int currentSFXIndex = 0;
 
     private void Awake() {
+        // Verificar si ya existe una instancia
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
         DontDestroyOnLoad(gameObject);
         InitializeAudioSources();
         LoadAudioSettings();

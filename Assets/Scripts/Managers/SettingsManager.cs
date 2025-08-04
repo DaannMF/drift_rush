@@ -2,7 +2,16 @@ using UnityEngine;
 
 public class SettingsManager : MonoBehaviour {
 
+    private static SettingsManager instance = null;
+
     private void Awake() {
+        // Verificar si ya existe una instancia
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
         DontDestroyOnLoad(gameObject);
         LoadAndApplyAllSettings();
     }

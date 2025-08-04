@@ -11,10 +11,18 @@ public class SaveGameManager : MonoBehaviour {
     private const string SAVE_DATA_PREFIX = "SaveGame_";
     private const string LAST_SAVE_KEY = "LastSaveIndex";
 
+    private static SaveGameManager instance = null;
     private List<Guid> saveGameIds = new();
     private PlayerLevelSaveData currentGameData;
 
     private void Awake() {
+        // Verificar si ya existe una instancia
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
         DontDestroyOnLoad(gameObject);
         LoadSaveGamesList();
     }

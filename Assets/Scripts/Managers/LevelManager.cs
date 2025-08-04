@@ -8,6 +8,8 @@ public class LevelManager : MonoBehaviour {
     [SerializeField] private List<LevelData> levels;
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
+    private static LevelManager instance = null;
+
     private int currentLevelIndex = 0;
     private bool isLoading = false;
     private GameObject playerInstance;
@@ -19,6 +21,13 @@ public class LevelManager : MonoBehaviour {
     public int TotalLevels => levels != null ? levels.Count : 0;
 
     private void Awake() {
+        // Verificar si ya existe una instancia
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
         DontDestroyOnLoad(gameObject);
     }
 
@@ -34,8 +43,6 @@ public class LevelManager : MonoBehaviour {
         LevelEvents.onRestartLevel += RestartCurrentLevel;
 
         // LevelManager Events
-        LevelEvents.onLoadLevel += LoadLevel;
-        LevelEvents.onLoadSceneByName += LoadSceneByName;
         LevelEvents.onLoadSceneByNameOnly += LoadSceneByNameOnly;
         LevelEvents.onLoadNextLevel += LoadNextLevel;
         LevelEvents.onLoadMainMenu += LoadMainMenu;
@@ -66,8 +73,6 @@ public class LevelManager : MonoBehaviour {
         LevelEvents.onRestartLevel -= RestartCurrentLevel;
 
         // LevelManager Events
-        LevelEvents.onLoadLevel -= LoadLevel;
-        LevelEvents.onLoadSceneByName -= LoadSceneByName;
         LevelEvents.onLoadSceneByNameOnly -= LoadSceneByNameOnly;
         LevelEvents.onLoadNextLevel -= LoadNextLevel;
         LevelEvents.onLoadMainMenu -= LoadMainMenu;
@@ -91,11 +96,6 @@ public class LevelManager : MonoBehaviour {
 
         currentLevelIndex = levelIndex;
         StartCoroutine(LoadLevelAsync());
-    }
-
-    public void LoadSceneByName(string sceneName) {
-        if (isLoading) return;
-        StartCoroutine(LoadSceneByNameAsync(sceneName));
     }
 
     public void LoadSceneByNameOnly(string sceneName) {
@@ -216,6 +216,8 @@ public class LevelManager : MonoBehaviour {
         yield return new WaitUntil(() => asyncLoad.isDone);
 
         yield return new WaitForEndOfFrame();
+
+        ConfigureUIForLevel();
 
         // NO auto-initialization - caller is responsible for initialization
         Debug.Log($"Scene {sceneName} loaded without auto-initialization");

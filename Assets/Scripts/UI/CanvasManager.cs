@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class CanvasManager : MonoBehaviour {
@@ -7,10 +8,18 @@ public class CanvasManager : MonoBehaviour {
     [SerializeField] private GameObject hudCanvas;
     [SerializeField] private GameObject endGamePanel;
     [SerializeField] private GameObject playPanel;
+    [SerializeField] private GameObject loadGamePanel;
 
-
+    private static CanvasManager instance = null;
 
     private void Awake() {
+        // Verificar si ya existe una instancia
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
         DontDestroyOnLoad(gameObject);
     }
 
@@ -63,6 +72,8 @@ public class CanvasManager : MonoBehaviour {
         if (mainPanel) mainPanel.SetActive(true);
         if (pausePanel) pausePanel.SetActive(true);
         if (hudCanvas) hudCanvas.SetActive(false);
+        if (playPanel) playPanel.SetActive(false);
+        if (loadGamePanel) loadGamePanel.SetActive(false);
     }
 
     public void ShowEndGamePanel() {
@@ -85,6 +96,7 @@ public class CanvasManager : MonoBehaviour {
         if (hudCanvas != null) hudCanvas.SetActive(false);
         if (endGamePanel != null) endGamePanel.SetActive(false);
         if (playPanel != null) playPanel.SetActive(false);
+        if (loadGamePanel != null) loadGamePanel.SetActive(false);
     }
 
     private void OnGameFinished() {

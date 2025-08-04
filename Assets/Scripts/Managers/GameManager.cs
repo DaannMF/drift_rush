@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour {
     [SerializeField] private int targetCoins = 10;
     [SerializeField] private float timeLimit = 60;
 
+    private static GameManager instance = null;
     private bool isGameWon;
 
     private int currentCoins;
@@ -15,6 +16,13 @@ public class GameManager : MonoBehaviour {
     private bool isLevelInitialized;
 
     private void Awake() {
+        // Verificar si ya existe una instancia
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
         DontDestroyOnLoad(gameObject);
     }
 
@@ -25,7 +33,6 @@ public class GameManager : MonoBehaviour {
             ConfigureUIForCurrentScene();
         }
     }
-
 
     void Update() {
         HandleCountdownTimer();

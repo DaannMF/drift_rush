@@ -377,6 +377,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &271152124 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7336950849616537041, guid: d7aaf426d0062074f93b44838cfc074f, type: 3}
+  m_PrefabInstance: {fileID: 1222448939}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &383149454
 GameObject:
   m_ObjectHideFlags: 0
@@ -1052,6 +1057,7 @@ MonoBehaviour:
   hudCanvas: {fileID: 1994349326}
   endGamePanel: {fileID: 1222448942}
   playPanel: {fileID: 1222448940}
+  loadGamePanel: {fileID: 271152124}
 --- !u!4 &915693201
 Transform:
   m_ObjectHideFlags: 0
@@ -1077,6 +1083,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 915693201}
     m_Modifications:
+    - target: {fileID: 2635290763195463721, guid: d7aaf426d0062074f93b44838cfc074f, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635290763195463721, guid: d7aaf426d0062074f93b44838cfc074f, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635290763195463721, guid: d7aaf426d0062074f93b44838cfc074f, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635290763195463721, guid: d7aaf426d0062074f93b44838cfc074f, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3247431818667289309, guid: d7aaf426d0062074f93b44838cfc074f, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
