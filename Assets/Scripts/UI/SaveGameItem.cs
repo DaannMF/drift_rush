@@ -70,8 +70,6 @@ public class SaveGameItem : MonoBehaviour {
         onDeleteCallback?.Invoke(saveData);
     }
 
-    #region Utility Methods
-
     private string GetLevelDisplayName(string sceneName) {
         // Convert scene names to user-friendly level names
         switch (sceneName) {
@@ -115,8 +113,6 @@ public class SaveGameItem : MonoBehaviour {
         int seconds = Mathf.FloorToInt(timeInSeconds % 60);
         return $"{minutes:00}:{seconds:00}";
     }
-
-    #endregion
 
     void OnDestroy() {
         if (loadButton != null) {

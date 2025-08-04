@@ -4,15 +4,11 @@ using System.Linq;
 using UnityEngine.SceneManagement;
 using System;
 
-public class SaveGameManager : MonoBehaviour
-{
+public class SaveGameManager : MonoBehaviour {
     private static SaveGameManager instance;
-    public static SaveGameManager Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
+    public static SaveGameManager Instance {
+        get {
+            if (instance == null) {
                 GameObject go = new GameObject("SaveGameManager");
                 instance = go.AddComponent<SaveGameManager>();
                 DontDestroyOnLoad(go);
@@ -31,25 +27,19 @@ public class SaveGameManager : MonoBehaviour
     private List<Guid> saveGameIds = new();
     private PlayerLevelSaveData currentGameData;
 
-    private void Awake()
-    {
-        if (instance == null)
-        {
+    private void Awake() {
+        if (instance == null) {
             instance = this;
             DontDestroyOnLoad(gameObject);
             LoadSaveGamesList();
         }
-        else if (instance != this)
-        {
+        else if (instance != this) {
             Destroy(gameObject);
         }
     }
 
-    #region Save Game Management
-
     // Create a new game save
-    public Guid CreateNewGame()
-    {
+    public Guid CreateNewGame() {
         PlayerLevelSaveData newSave = new PlayerLevelSaveData("Level1");
         Guid saveId = newSave.id;
 
@@ -70,10 +60,8 @@ public class SaveGameManager : MonoBehaviour
     }
 
     // Save current game state
-    public void SaveCurrentGame()
-    {
-        if (currentGameData == null)
-        {
+    public void SaveCurrentGame() {
+        if (currentGameData == null) {
             Debug.LogWarning("No current game data to save!");
             return;
         }
@@ -83,19 +71,16 @@ public class SaveGameManager : MonoBehaviour
 
         // Find the save ID for current game
         Guid currentSaveId = GetCurrentSaveId();
-        if (currentSaveId != Guid.Empty)
-        {
+        if (currentSaveId != Guid.Empty) {
             SaveGameData(currentSaveId, currentGameData);
             Debug.Log($"Game saved: {currentGameData.id}");
         }
     }
 
     // Load a specific save game
-    public bool LoadGame(Guid id)
-    {
+    public bool LoadGame(Guid id) {
         PlayerLevelSaveData saveData = LoadGameData(id);
-        if (saveData != null)
-        {
+        if (saveData != null) {
             currentGameData = saveData;
             PlayerPrefs.SetString(LAST_SAVE_KEY, id.ToString());
             PlayerPrefs.Save();
@@ -109,17 +94,14 @@ public class SaveGameManager : MonoBehaviour
     }
 
     // Load the last played game
-    public bool LoadLastGame()
-    {
+    public bool LoadLastGame() {
         string lastSaveId = PlayerPrefs.GetString(LAST_SAVE_KEY, "");
-        if (!string.IsNullOrEmpty(lastSaveId) && Guid.TryParse(lastSaveId, out Guid lastId) && saveGameIds.Contains(lastId))
-        {
+        if (!string.IsNullOrEmpty(lastSaveId) && Guid.TryParse(lastSaveId, out Guid lastId) && saveGameIds.Contains(lastId)) {
             return LoadGame(lastId);
         }
 
         // If no last save or it doesn't exist, load the most recent save
-        if (saveGameIds.Count > 0)
-        {
+        if (saveGameIds.Count > 0) {
             return LoadGame(saveGameIds.Last());
         }
 
@@ -128,10 +110,8 @@ public class SaveGameManager : MonoBehaviour
     }
 
     // Delete a save game
-    public bool DeleteGame(Guid saveId)
-    {
-        if (saveGameIds.Contains(saveId))
-        {
+    public bool DeleteGame(Guid saveId) {
+        if (saveGameIds.Contains(saveId)) {
             saveGameIds.Remove(saveId);
             PlayerPrefs.DeleteKey(SAVE_DATA_PREFIX + saveId);
             SaveSaveGamesList();
@@ -143,20 +123,13 @@ public class SaveGameManager : MonoBehaviour
         return false;
     }
 
-    #endregion
-
-    #region Data Access
-
     // Get list of all save games
-    public List<PlayerLevelSaveData> GetAllSaveGames()
-    {
+    public List<PlayerLevelSaveData> GetAllSaveGames() {
         List<PlayerLevelSaveData> saves = new List<PlayerLevelSaveData>();
 
-        foreach (Guid saveId in saveGameIds)
-        {
+        foreach (Guid saveId in saveGameIds) {
             PlayerLevelSaveData saveData = LoadGameData(saveId);
-            if (saveData != null)
-            {
+            if (saveData != null) {
                 saves.Add(saveData);
             }
         }
@@ -165,24 +138,17 @@ public class SaveGameManager : MonoBehaviour
     }
 
     // Get current game data
-    public PlayerLevelSaveData GetCurrentGameData()
-    {
+    public PlayerLevelSaveData GetCurrentGameData() {
         return currentGameData;
     }
 
     // Check if there are any saved games
-    public bool HasSavedGames()
-    {
+    public bool HasSavedGames() {
         return saveGameIds.Count > 0;
     }
 
-    #endregion
-
-    #region Scene Integration
-
     // Update current game data from the current scene
-    private void UpdateCurrentGameDataFromScene()
-    {
+    private void UpdateCurrentGameDataFromScene() {
         if (currentGameData == null) return;
 
         // Update scene name
@@ -193,8 +159,7 @@ public class SaveGameManager : MonoBehaviour
 
         // Try to get player data from scene
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
+        if (player != null) {
             currentGameData.playerPosition = player.transform.position;
             currentGameData.SetPlayerRotationFromQuaternion(player.transform.rotation);
         }
@@ -204,14 +169,12 @@ public class SaveGameManager : MonoBehaviour
     }
 
     // Apply loaded game data to current scene
-    public void ApplyGameDataToScene()
-    {
+    public void ApplyGameDataToScene() {
         if (currentGameData == null) return;
 
         // Apply player position and rotation
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
+        if (player != null) {
             player.transform.SetPositionAndRotation(currentGameData.playerPosition, currentGameData.GetPlayerRotationAsQuaternion());
         }
 
@@ -222,69 +185,52 @@ public class SaveGameManager : MonoBehaviour
         Debug.Log($"Applied save data to scene: {currentGameData.sceneName}");
     }
 
-    #endregion
-
-    #region Internal Methods
-
-    private void SaveGameData(Guid id, PlayerLevelSaveData data)
-    {
+    private void SaveGameData(Guid id, PlayerLevelSaveData data) {
         string json = JsonUtility.ToJson(data);
         PlayerPrefs.SetString(SAVE_DATA_PREFIX + id.ToString(), json);
         PlayerPrefs.Save();
     }
 
-    private PlayerLevelSaveData LoadGameData(Guid id)
-    {
+    private PlayerLevelSaveData LoadGameData(Guid id) {
         string json = PlayerPrefs.GetString(SAVE_DATA_PREFIX + id.ToString(), "");
-        if (!string.IsNullOrEmpty(json))
-        {
+        if (!string.IsNullOrEmpty(json)) {
             return JsonUtility.FromJson<PlayerLevelSaveData>(json);
         }
         return null;
     }
 
-    private void SaveSaveGamesList()
-    {
+    private void SaveSaveGamesList() {
         string json = JsonUtility.ToJson(new SaveGamesList { saveIds = saveGameIds });
         PlayerPrefs.SetString(SAVE_LIST_KEY, json);
         PlayerPrefs.Save();
     }
 
-    private void LoadSaveGamesList()
-    {
+    private void LoadSaveGamesList() {
         string json = PlayerPrefs.GetString(SAVE_LIST_KEY, "");
-        if (!string.IsNullOrEmpty(json))
-        {
+        if (!string.IsNullOrEmpty(json)) {
             SaveGamesList savesList = JsonUtility.FromJson<SaveGamesList>(json);
             saveGameIds = savesList.saveIds ?? new List<Guid>();
         }
     }
 
-    private Guid GetCurrentSaveId()
-    {
+    private Guid GetCurrentSaveId() {
         string lastSaveId = PlayerPrefs.GetString(LAST_SAVE_KEY, "");
-        if (!string.IsNullOrEmpty(lastSaveId) && Guid.TryParse(lastSaveId, out Guid id) && saveGameIds.Contains(id))
-        {
+        if (!string.IsNullOrEmpty(lastSaveId) && Guid.TryParse(lastSaveId, out Guid id) && saveGameIds.Contains(id)) {
             return id;
         }
         return Guid.Empty;
     }
 
-    private void OnCurrentCoinsReceived(int coins)
-    {
+    private void OnCurrentCoinsReceived(int coins) {
         currentGameData.coins = coins;
     }
 
-    private void OnRemainingTimeReceived(float time)
-    {
+    private void OnRemainingTimeReceived(float time) {
         currentGameData.timeRemaining = time;
     }
-
-    #endregion
 }
 
 [System.Serializable]
-public class SaveGamesList
-{
+public class SaveGamesList {
     public List<Guid> saveIds = new();
 }
