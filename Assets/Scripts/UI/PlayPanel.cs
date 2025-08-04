@@ -3,8 +3,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
 
-public class PlayPanel : MonoBehaviour
-{
+public class PlayPanel : MonoBehaviour {
     [Header("Main Buttons")]
     [SerializeField] private Button newGameButton;
     [SerializeField] private Button continueButton;
@@ -12,23 +11,19 @@ public class PlayPanel : MonoBehaviour
     [SerializeField] private Button backButton;
 
 
-    void Awake()
-    {
+    void Awake() {
         SetupButtonListeners();
     }
 
-    void OnEnable()
-    {
+    void OnEnable() {
         UpdateButtonStates();
     }
 
-    void OnDestroy()
-    {
+    void OnDestroy() {
         CleanupButtonListeners();
     }
 
-    private void SetupButtonListeners()
-    {
+    private void SetupButtonListeners() {
         if (newGameButton != null)
             newGameButton.onClick.AddListener(OnNewGameButtonClicked);
 
@@ -39,8 +34,7 @@ public class PlayPanel : MonoBehaviour
             backButton.onClick.AddListener(OnBackButtonClicked);
     }
 
-    private void CleanupButtonListeners()
-    {
+    private void CleanupButtonListeners() {
         if (newGameButton != null)
             newGameButton.onClick.RemoveListener(OnNewGameButtonClicked);
 
@@ -52,64 +46,50 @@ public class PlayPanel : MonoBehaviour
 
     }
 
-    private void OnNewGameButtonClicked()
-    {
-        SaveEvents.onCreateNewGame?.Invoke(saveId =>
-        {
-            if (saveId != Guid.Empty)
-            {
+    private void OnNewGameButtonClicked() {
+        SaveEvents.onCreateNewGame?.Invoke(saveId => {
+            if (saveId != Guid.Empty) {
                 StartNewGame();
             }
         });
     }
 
-    private void OnContinueButtonClicked()
-    {
+    private void OnContinueButtonClicked() {
         SaveEvents.onLoadLastGame?.Invoke();
         StartLoadedGame();
     }
 
-    private void OnBackButtonClicked()
-    {
+    private void OnBackButtonClicked() {
         UIEvents.onShowMainMenuPanel?.Invoke();
     }
 
-    private void StartNewGame()
-    {
+    private void StartNewGame() {
         // Start loading to Level1
         LevelEvents.onLoadSceneByName?.Invoke("Level1");
     }
 
-    private void StartLoadedGame()
-    {
-        SaveEvents.onGetCurrentGameData?.Invoke(currentData =>
-        {
-            if (currentData != null)
-            {
+    private void StartLoadedGame() {
+        SaveEvents.onGetCurrentGameData?.Invoke(currentData => {
+            if (currentData != null) {
                 // Load the scene from the save data
                 LevelEvents.onLoadSceneByName?.Invoke(currentData.sceneName);
             }
         });
     }
 
-    private void UpdateButtonStates()
-    {
-        SaveEvents.onHasSavedGames?.Invoke(hasSavedGames =>
-        {
-            if (continueButton != null)
-            {
+    private void UpdateButtonStates() {
+        SaveEvents.onHasSavedGames?.Invoke(hasSavedGames => {
+            if (continueButton != null) {
                 continueButton.interactable = hasSavedGames;
             }
 
-            if (loadGameButton != null)
-            {
+            if (loadGameButton != null) {
                 loadGameButton.interactable = hasSavedGames;
             }
         });
     }
 
-    public void RefreshButtonStates()
-    {
+    public void RefreshButtonStates() {
         UpdateButtonStates();
     }
 }

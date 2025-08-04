@@ -1,8 +1,7 @@
 using UnityEngine.Events;
 using System;
 
-public abstract class SaveEvents
-{
+public abstract class SaveEvents {
     // Save game creation and management
     public static UnityAction<Action<Guid>> onCreateNewGame;
     public static UnityAction onSaveCurrentGame;
