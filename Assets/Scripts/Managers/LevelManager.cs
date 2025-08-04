@@ -118,7 +118,10 @@ public class LevelManager : MonoBehaviour {
     }
 
     public void RestartCurrentLevel() {
-        if (CurrentLevel != null) LoadLevel(currentLevelIndex);
+        if (CurrentLevel != null) {
+            shouldAutoSaveAfterLoad = true;
+            LoadLevel(currentLevelIndex);
+        }
     }
 
     public void LoadMainMenu() {
