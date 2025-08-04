@@ -46,18 +46,10 @@ public class AudioManager : MonoBehaviour {
 
 
 
-    private static AudioManager instance;
     private int currentSFXIndex = 0;
 
     private void Awake() {
-        if (instance == null) {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-            InitializeAudioSources();
-        }
-        else if (instance != this) {
-            Destroy(gameObject);
-        }
+        InitializeAudioSources();
     }
 
     private void Start() {

@@ -8,17 +8,7 @@ public class CanvasManager : MonoBehaviour {
     [SerializeField] private GameObject endGamePanel;
     [SerializeField] private GameObject playPanel;
 
-    private static CanvasManager instance;
 
-    private void Awake() {
-        if (instance == null) {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else if (instance != this) {
-            Destroy(gameObject);
-        }
-    }
 
     private void Start() {
         SubscribeToEvents();

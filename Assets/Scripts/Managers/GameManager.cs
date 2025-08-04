@@ -7,24 +7,12 @@ public class GameManager : MonoBehaviour {
     [SerializeField] private int targetCoins = 10;
     [SerializeField] private float timeLimit = 60;
 
-    private static GameManager instance;
-
     private bool isGameWon;
 
     private int currentCoins;
     private float currentTime;
     private bool gameStarted;
     private bool isLevelInitialized;
-
-    private void Awake() {
-        if (instance == null) {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else if (instance != this) {
-            Destroy(gameObject);
-        }
-    }
 
     void Start() {
         SubscribeToEvents();

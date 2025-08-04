@@ -3,7 +3,8 @@ using UnityEngine.UI;
 using System.Collections;
 using TMPro;
 
-public class FakeLoadingBar : MonoBehaviour {
+public class FakeLoadingBar : MonoBehaviour
+{
     [Header("Loading Bar References")]
     [SerializeField] private Slider progressBar;
     [SerializeField] private TextMeshProUGUI progressText;
@@ -25,66 +26,84 @@ public class FakeLoadingBar : MonoBehaviour {
         "Almost ready..."
     };
 
-    private static FakeLoadingBar instance;
-    public static FakeLoadingBar Instance {
-        get {
-            if (instance == null) {
-                GameObject go = new GameObject("FakeLoadingBar");
-                instance = go.AddComponent<FakeLoadingBar>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
-        }
+    private void Awake()
+    {
+        InitializeLoadingBar();
+        SubscribeToEvents();
     }
 
-    private void Awake() {
-        if (instance == null) {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-            InitializeLoadingBar();
-        }
-        else if (instance != this) {
-            Destroy(gameObject);
-        }
+    private void OnDestroy()
+    {
+        UnsubscribeFromEvents();
     }
 
-    private void InitializeLoadingBar() {
-        if (loadingPanel != null) {
+    private void SubscribeToEvents()
+    {
+        LevelEvents.onLevelLoadStarted += ShowLoadingScreen;
+        LevelEvents.onLevelLoadCompleted += HideLoadingScreen;
+        LevelEvents.onLevelLoadProgress += UpdateProgressFromLevel;
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        LevelEvents.onLevelLoadStarted -= ShowLoadingScreen;
+        LevelEvents.onLevelLoadCompleted -= HideLoadingScreen;
+        LevelEvents.onLevelLoadProgress -= UpdateProgressFromLevel;
+    }
+
+    private void InitializeLoadingBar()
+    {
+        if (loadingPanel != null)
+        {
             loadingPanel.SetActive(false);
         }
 
-        if (progressBar != null) {
+        if (progressBar != null)
+        {
             progressBar.value = 0f;
         }
 
-        if (progressText != null) {
+        if (progressText != null)
+        {
             progressText.text = "0%";
         }
     }
 
-    public void ShowLoadingScreen() {
-        if (loadingPanel != null) {
+    public void ShowLoadingScreen()
+    {
+        if (loadingPanel != null)
+        {
             loadingPanel.SetActive(true);
         }
 
         ResetProgressBar();
     }
 
-    public void HideLoadingScreen() {
-        if (loadingPanel != null) {
+    public void HideLoadingScreen()
+    {
+        if (loadingPanel != null)
+        {
             loadingPanel.SetActive(false);
         }
     }
 
-    public void StartFakeLoading(System.Action onComplete = null) {
+    private void UpdateProgressFromLevel(float progress)
+    {
+        UpdateProgressBar(progress);
+    }
+
+    public void StartFakeLoading(System.Action onComplete = null)
+    {
         StartCoroutine(FakeLoadingCoroutine(onComplete));
     }
 
-    public void StartFakeLoadingWithRealProgress(AsyncOperation asyncOperation, System.Action onComplete = null) {
+    public void StartFakeLoadingWithRealProgress(AsyncOperation asyncOperation, System.Action onComplete = null)
+    {
         StartCoroutine(LoadingWithRealProgressCoroutine(asyncOperation, onComplete));
     }
 
-    private IEnumerator FakeLoadingCoroutine(System.Action onComplete) {
+    private IEnumerator FakeLoadingCoroutine(System.Action onComplete)
+    {
         float loadingTime = Random.Range(minLoadingTime, maxLoadingTime);
         float elapsedTime = 0f;
 
@@ -93,7 +112,8 @@ public class FakeLoadingBar : MonoBehaviour {
         float messageChangeInterval = loadingTime / loadingMessages.Length;
         float nextMessageTime = messageChangeInterval;
 
-        while (elapsedTime < loadingTime) {
+        while (elapsedTime < loadingTime)
+        {
             elapsedTime += Time.unscaledDeltaTime;
 
             // Update progress using curve
@@ -103,7 +123,8 @@ public class FakeLoadingBar : MonoBehaviour {
             UpdateProgressBar(progress);
 
             // Change loading message
-            if (elapsedTime >= nextMessageTime && currentMessageIndex < loadingMessages.Length) {
+            if (elapsedTime >= nextMessageTime && currentMessageIndex < loadingMessages.Length)
+            {
                 UpdateLoadingMessage(loadingMessages[currentMessageIndex]);
                 currentMessageIndex++;
                 nextMessageTime += messageChangeInterval;
@@ -121,7 +142,8 @@ public class FakeLoadingBar : MonoBehaviour {
         onComplete?.Invoke();
     }
 
-    private IEnumerator LoadingWithRealProgressCoroutine(AsyncOperation asyncOperation, System.Action onComplete) {
+    private IEnumerator LoadingWithRealProgressCoroutine(AsyncOperation asyncOperation, System.Action onComplete)
+    {
         float fakeProgress = 0f;
         float realProgress = 0f;
 
@@ -129,7 +151,8 @@ public class FakeLoadingBar : MonoBehaviour {
         float messageTimer = 0f;
         float messageChangeInterval = 1.5f;
 
-        while (!asyncOperation.isDone || fakeProgress < 1f) {
+        while (!asyncOperation.isDone || fakeProgress < 1f)
+        {
             // Get real loading progress (clamped to 0.9 until done)
             realProgress = Mathf.Clamp01(asyncOperation.progress / 0.9f);
 
@@ -137,7 +160,8 @@ public class FakeLoadingBar : MonoBehaviour {
             fakeProgress = Mathf.MoveTowards(fakeProgress, realProgress, Time.unscaledDeltaTime * 0.5f);
 
             // If real loading is done but fake isn't at 100%, speed up fake progress
-            if (asyncOperation.isDone && fakeProgress < 1f) {
+            if (asyncOperation.isDone && fakeProgress < 1f)
+            {
                 fakeProgress = Mathf.MoveTowards(fakeProgress, 1f, Time.unscaledDeltaTime * 2f);
             }
 
@@ -145,7 +169,8 @@ public class FakeLoadingBar : MonoBehaviour {
 
             // Update loading messages
             messageTimer += Time.unscaledDeltaTime;
-            if (messageTimer >= messageChangeInterval && currentMessageIndex < loadingMessages.Length) {
+            if (messageTimer >= messageChangeInterval && currentMessageIndex < loadingMessages.Length)
+            {
                 UpdateLoadingMessage(loadingMessages[currentMessageIndex]);
                 currentMessageIndex = (currentMessageIndex + 1) % loadingMessages.Length;
                 messageTimer = 0f;
@@ -163,32 +188,40 @@ public class FakeLoadingBar : MonoBehaviour {
         onComplete?.Invoke();
     }
 
-    private void UpdateProgressBar(float progress) {
+    private void UpdateProgressBar(float progress)
+    {
         progress = Mathf.Clamp01(progress);
 
-        if (progressBar != null) {
+        if (progressBar != null)
+        {
             progressBar.value = progress;
         }
 
-        if (progressText != null) {
+        if (progressText != null)
+        {
             progressText.text = $"{Mathf.RoundToInt(progress * 100)}%";
         }
     }
 
-    private void UpdateLoadingMessage(string message) {
-        if (loadingMessageText != null) {
+    private void UpdateLoadingMessage(string message)
+    {
+        if (loadingMessageText != null)
+        {
             loadingMessageText.text = message;
         }
     }
 
-    private void ResetProgressBar() {
+    private void ResetProgressBar()
+    {
         UpdateProgressBar(0f);
-        if (loadingMessages.Length > 0) {
+        if (loadingMessages.Length > 0)
+        {
             UpdateLoadingMessage(loadingMessages[0]);
         }
     }
 
-    public bool IsLoading() {
+    public bool IsLoading()
+    {
         return loadingPanel != null && loadingPanel.activeInHierarchy;
     }
 }

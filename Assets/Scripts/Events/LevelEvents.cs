@@ -9,6 +9,7 @@ public abstract class LevelEvents {
     public static UnityAction<float> onLevelLoadProgress;
 
     public static UnityAction<int> onLoadLevel;
+    public static UnityAction<string> onLoadSceneByName;
     public static UnityAction onLoadNextLevel;
     public static UnityAction onLoadMainMenu;
 
