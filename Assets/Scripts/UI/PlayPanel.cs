@@ -48,22 +48,16 @@ public class PlayPanel : MonoBehaviour {
     }
 
     private void OnContinueButtonClicked() {
+        // SaveGameManager handles the complete loading process including scene loading
         SaveEvents.onLoadLastGame?.Invoke();
-        StartLoadedGame();
+        // No need for StartLoadedGame() - SaveGameManager handles everything
     }
 
     private void OnBackButtonClicked() {
         UIEvents.onShowMainMenuPanel?.Invoke();
     }
 
-    private void StartLoadedGame() {
-        SaveEvents.onGetCurrentGameData?.Invoke(currentData => {
-            if (currentData != null) {
-                // Load the scene from the save data
-                LevelEvents.onLoadSceneByName?.Invoke(currentData.sceneName);
-            }
-        });
-    }
+
 
     private void UpdateButtonStates() {
         SaveEvents.onHasSavedGames?.Invoke(hasSavedGames => {

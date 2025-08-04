@@ -4,11 +4,12 @@ using UnityEngine.UI;
 public class MainPanelPanel : MonoBehaviour {
 
     [Header("UI Elements")]
+    [SerializeField] Button playButton;
     [SerializeField] Button backButton;
     [SerializeField] Button exitButton;
     [SerializeField] Button saveButton;
 
-    void Awake() {
+    void OnEnable() {
 #if UNITY_WEBGL
         exitButton.gameObject.SetActive(false);
 #else
@@ -16,6 +17,7 @@ public class MainPanelPanel : MonoBehaviour {
 #endif
 
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "MainMenu") {
+            playButton.gameObject.SetActive(false);
             backButton.gameObject.SetActive(true);
             backButton.onClick.AddListener(OnBackButtonClicked);
 
@@ -31,14 +33,14 @@ public class MainPanelPanel : MonoBehaviour {
             }
         }
         else {
+            // In MainMenu, hide back button and save button
+            playButton.gameObject.SetActive(true);
             backButton.gameObject.SetActive(false);
             if (saveButton != null) {
                 saveButton.gameObject.SetActive(false);
             }
         }
-    }
 
-    void OnEnable() {
         LevelEvents.onGetIsInLevel?.Invoke(isInLevel => {
             if (isInLevel) {
                 GameEvents.onPauseGame?.Invoke();
@@ -69,9 +71,6 @@ public class MainPanelPanel : MonoBehaviour {
 
         // You could show a confirmation message here
         Debug.Log("Game saved successfully!");
-
-        // Optional: Show a brief UI feedback
-        ShowSaveConfirmation();
     }
 
     private void OnExitButtonClicked() {
@@ -83,11 +82,5 @@ public class MainPanelPanel : MonoBehaviour {
 #elif UNITY_STANDALONE
         Application.Quit();
 #endif
-    }
-
-    private void ShowSaveConfirmation() {
-        // This could trigger a UI animation or message
-        // For now, just log the success
-        Debug.Log("Save confirmation shown");
     }
 }

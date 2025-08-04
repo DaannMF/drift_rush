@@ -36,6 +36,7 @@ public class LevelManager : MonoBehaviour {
         // LevelManager Events
         LevelEvents.onLoadLevel += LoadLevel;
         LevelEvents.onLoadSceneByName += LoadSceneByName;
+        LevelEvents.onLoadSceneByNameOnly += LoadSceneByNameOnly;
         LevelEvents.onLoadNextLevel += LoadNextLevel;
         LevelEvents.onLoadMainMenu += LoadMainMenu;
 
@@ -67,6 +68,7 @@ public class LevelManager : MonoBehaviour {
         // LevelManager Events
         LevelEvents.onLoadLevel -= LoadLevel;
         LevelEvents.onLoadSceneByName -= LoadSceneByName;
+        LevelEvents.onLoadSceneByNameOnly -= LoadSceneByNameOnly;
         LevelEvents.onLoadNextLevel -= LoadNextLevel;
         LevelEvents.onLoadMainMenu -= LoadMainMenu;
 
@@ -94,6 +96,11 @@ public class LevelManager : MonoBehaviour {
     public void LoadSceneByName(string sceneName) {
         if (isLoading) return;
         StartCoroutine(LoadSceneByNameAsync(sceneName));
+    }
+
+    public void LoadSceneByNameOnly(string sceneName) {
+        if (isLoading) return;
+        StartCoroutine(LoadSceneByNameOnlyAsync(sceneName));
     }
 
     public void LoadNextLevel() {
@@ -161,9 +168,6 @@ public class LevelManager : MonoBehaviour {
 
         yield return new WaitForEndOfFrame();
 
-        // Apply saved game data if available
-        SaveEvents.onApplySaveDataToScene?.Invoke();
-
         // Configure UI based on scene
         if (sceneName == mainMenuSceneName) {
             ConfigureUIForMainMenu();
@@ -178,7 +182,43 @@ public class LevelManager : MonoBehaviour {
             }
         }
 
+        // UIEvents.onShowGameUI?.Invoke();
         UIEvents.onForceUIUpdate?.Invoke();
+
+        isLoading = false;
+        LevelEvents.onLevelLoadCompleted?.Invoke();
+    }
+
+    private IEnumerator LoadSceneByNameOnlyAsync(string sceneName) {
+        isLoading = true;
+        LevelEvents.onLevelLoadStarted?.Invoke();
+
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+        asyncLoad.allowSceneActivation = false;
+
+        // Simulate progress for smooth loading bar
+        float fakeProgress = 0f;
+        while (fakeProgress < 0.9f) {
+            fakeProgress = Mathf.MoveTowards(fakeProgress, asyncLoad.progress / 0.9f, Time.unscaledDeltaTime * 0.5f);
+            LevelEvents.onLevelLoadProgress?.Invoke(fakeProgress);
+            yield return null;
+        }
+
+        // Complete the loading
+        while (fakeProgress < 1f) {
+            fakeProgress = Mathf.MoveTowards(fakeProgress, 1f, Time.unscaledDeltaTime * 2f);
+            LevelEvents.onLevelLoadProgress?.Invoke(fakeProgress);
+            yield return null;
+        }
+
+        // Activate scene
+        asyncLoad.allowSceneActivation = true;
+        yield return new WaitUntil(() => asyncLoad.isDone);
+
+        yield return new WaitForEndOfFrame();
+
+        // NO auto-initialization - caller is responsible for initialization
+        Debug.Log($"Scene {sceneName} loaded without auto-initialization");
 
         isLoading = false;
         LevelEvents.onLevelLoadCompleted?.Invoke();

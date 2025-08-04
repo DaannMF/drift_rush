@@ -21,10 +21,7 @@ public class GameManager : MonoBehaviour {
     void Start() {
         SubscribeToEvents();
 
-        if (!isLevelInitialized) {
-            InitializeLevel(targetCoins, timeLimit);
-        }
-        else {
+        if (isLevelInitialized) {
             ConfigureUIForCurrentScene();
         }
     }
@@ -96,10 +93,16 @@ public class GameManager : MonoBehaviour {
         targetCoins = levelTargetCoins;
         timeLimit = levelTimeLimit;
 
-        currentCoins = 0;
+        // Only reset coins and time if this is a fresh level initialization (not loading a save)
+        if (currentCoins == 0 && currentTime == 0) {
+            currentCoins = 0;
+            currentTime = timeLimit;
+        }
+
+        // Always update UI with current values
         GameEvents.onCurrentCoinsChanged?.Invoke(currentCoins, targetCoins);
-        currentTime = timeLimit;
         GameEvents.onCurrentTimeChanged?.Invoke(currentTime);
+
         gameStarted = false;
         isGameWon = false;
         isLevelInitialized = true;
