@@ -4,7 +4,8 @@ using System.Linq;
 using UnityEngine.SceneManagement;
 using System;
 
-public class SaveGameManager : MonoBehaviour {
+public class SaveGameManager : MonoBehaviour
+{
     [Header("Save Settings")]
     [SerializeField] private int maxSaveSlots = 10;
 
@@ -15,20 +16,24 @@ public class SaveGameManager : MonoBehaviour {
     private List<Guid> saveGameIds = new();
     private PlayerLevelSaveData currentGameData;
 
-    private void Awake() {
+    private void Awake()
+    {
         DontDestroyOnLoad(gameObject);
         LoadSaveGamesList();
     }
 
-    private void Start() {
+    private void Start()
+    {
         SubscribeToEvents();
     }
 
-    private void OnDestroy() {
+    private void OnDestroy()
+    {
         UnsubscribeFromEvents();
     }
 
-    private void SubscribeToEvents() {
+    private void SubscribeToEvents()
+    {
         SaveEvents.onCreateNewGame += OnCreateNewGame;
         SaveEvents.onSaveCurrentGame += SaveCurrentGame;
         SaveEvents.onLoadGame += OnLoadGame;
@@ -46,7 +51,8 @@ public class SaveGameManager : MonoBehaviour {
         GameEvents.onGetTimeRemaining += OnGetTimeRemainingForSave;
     }
 
-    private void UnsubscribeFromEvents() {
+    private void UnsubscribeFromEvents()
+    {
         SaveEvents.onCreateNewGame -= OnCreateNewGame;
         SaveEvents.onSaveCurrentGame -= SaveCurrentGame;
         SaveEvents.onLoadGame -= OnLoadGame;
@@ -65,8 +71,9 @@ public class SaveGameManager : MonoBehaviour {
     }
 
     // Create a new game save
-    private void OnCreateNewGame(System.Action<Guid> callback) {
-        PlayerLevelSaveData newSave = new PlayerLevelSaveData("Level1");
+    private void OnCreateNewGame(System.Action<Guid> callback)
+    {
+        PlayerLevelSaveData newSave = PlayerLevelSaveData.CreateNewSave("Level1");
 
         // Save the game data
         SaveGameData(newSave);
@@ -77,7 +84,7 @@ public class SaveGameManager : MonoBehaviour {
 
         // Set as current game and last save
         currentGameData = newSave;
-        PlayerPrefs.SetString(LAST_SAVE_KEY, newSave.id.ToString());
+        PlayerPrefs.SetString(LAST_SAVE_KEY, newSave.id);
         PlayerPrefs.Save();
 
         Debug.Log($"Created new game with ID: {newSave.id}");
@@ -85,8 +92,10 @@ public class SaveGameManager : MonoBehaviour {
     }
 
     // Save current game state
-    public void SaveCurrentGame() {
-        if (currentGameData == null) {
+    public void SaveCurrentGame()
+    {
+        if (currentGameData == null)
+        {
             Debug.LogWarning("No current game data to save!");
             return;
         }
@@ -96,37 +105,44 @@ public class SaveGameManager : MonoBehaviour {
 
         // Find the save ID for current game
         Guid currentSaveId = GetCurrentSaveId();
-        if (currentSaveId != Guid.Empty) {
+        if (currentSaveId != Guid.Empty)
+        {
             SaveGameData(currentGameData);
             Debug.Log($"Game saved: {currentGameData.id}");
         }
     }
 
     // Load a specific save game
-    private void OnLoadGame(Guid id) {
+    private void OnLoadGame(Guid id)
+    {
         PlayerLevelSaveData saveData = LoadGameData(id);
-        if (saveData != null) {
+        if (saveData != null)
+        {
             currentGameData = saveData;
             PlayerPrefs.SetString(LAST_SAVE_KEY, id.ToString());
             PlayerPrefs.Save();
 
             Debug.Log($"Loaded game: {saveData.id}");
         }
-        else {
+        else
+        {
             Debug.LogError($"Failed to load game with ID: {id}");
         }
     }
 
     // Load the last played game
-    private void OnLoadLastGame() {
+    private void OnLoadLastGame()
+    {
         string lastSaveId = PlayerPrefs.GetString(LAST_SAVE_KEY, "");
-        if (!string.IsNullOrEmpty(lastSaveId) && Guid.TryParse(lastSaveId, out Guid lastId) && saveGameIds.Contains(lastId)) {
+        if (!string.IsNullOrEmpty(lastSaveId) && Guid.TryParse(lastSaveId, out Guid lastId) && saveGameIds.Contains(lastId))
+        {
             OnLoadGame(lastId);
             return;
         }
 
         // If no last save or it doesn't exist, load the most recent save
-        if (saveGameIds.Count > 0) {
+        if (saveGameIds.Count > 0)
+        {
             OnLoadGame(saveGameIds.Last());
             return;
         }
@@ -135,8 +151,10 @@ public class SaveGameManager : MonoBehaviour {
     }
 
     // Delete a save game
-    private void OnDeleteGame(Guid saveId) {
-        if (saveGameIds.Contains(saveId)) {
+    private void OnDeleteGame(Guid saveId)
+    {
+        if (saveGameIds.Contains(saveId))
+        {
             saveGameIds.Remove(saveId);
             PlayerPrefs.DeleteKey(SAVE_DATA_PREFIX + saveId);
             SaveSaveGamesList();
@@ -146,10 +164,12 @@ public class SaveGameManager : MonoBehaviour {
     }
 
     // Get list of all save games
-    private void OnGetAllSaveGames(System.Action<List<PlayerLevelSaveData>> callback) {
+    private void OnGetAllSaveGames(System.Action<List<PlayerLevelSaveData>> callback)
+    {
         List<PlayerLevelSaveData> saves = new List<PlayerLevelSaveData>();
 
-        foreach (Guid saveId in saveGameIds) {
+        foreach (Guid saveId in saveGameIds)
+        {
             PlayerLevelSaveData saveData = LoadGameData(saveId);
             if (saveData != null)
                 saves.Add(saveData);
@@ -159,17 +179,20 @@ public class SaveGameManager : MonoBehaviour {
     }
 
     // Get current game data
-    private void OnGetCurrentGameData(System.Action<PlayerLevelSaveData> callback) {
+    private void OnGetCurrentGameData(System.Action<PlayerLevelSaveData> callback)
+    {
         callback?.Invoke(currentGameData);
     }
 
     // Check if there are any saved games
-    private void OnHasSavedGames(System.Action<bool> callback) {
+    private void OnHasSavedGames(System.Action<bool> callback)
+    {
         callback?.Invoke(saveGameIds.Count > 0);
     }
 
     // Update current game data from the current scene
-    private void UpdateCurrentGameDataFromScene() {
+    private void UpdateCurrentGameDataFromScene()
+    {
         if (currentGameData == null) return;
 
         // Update scene name
@@ -180,7 +203,8 @@ public class SaveGameManager : MonoBehaviour {
 
         // Try to get player data from scene
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null) {
+        if (player != null)
+        {
             currentGameData.playerPosition = player.transform.position;
             currentGameData.SetPlayerRotationFromQuaternion(player.transform.rotation);
         }
@@ -190,12 +214,14 @@ public class SaveGameManager : MonoBehaviour {
     }
 
     // Apply loaded game data to current scene
-    public void ApplyGameDataToScene() {
+    public void ApplyGameDataToScene()
+    {
         if (currentGameData == null) return;
 
         // Apply player position and rotation
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null) {
+        if (player != null)
+        {
             player.transform.SetPositionAndRotation(currentGameData.playerPosition, currentGameData.GetPlayerRotationAsQuaternion());
         }
 
@@ -206,21 +232,30 @@ public class SaveGameManager : MonoBehaviour {
         Debug.Log($"Applied save data to scene: {currentGameData.sceneName}");
     }
 
-    private void SaveGameData(PlayerLevelSaveData data) {
-        string json = JsonUtility.ToJson(data);
-        PlayerPrefs.SetString(SAVE_DATA_PREFIX + data.id.ToString(), json);
+    private void SaveGameData(PlayerLevelSaveData data)
+    {
+        data.UpdateSaveDate(); // Update save date before saving
+        string json = JsonUtility.ToJson(data, true);
+        PlayerPrefs.SetString(SAVE_DATA_PREFIX + data.id, json);
         PlayerPrefs.Save();
+        Debug.Log($"Saved game data for ID: {data.id}");
     }
 
-    private PlayerLevelSaveData LoadGameData(Guid id) {
+    private PlayerLevelSaveData LoadGameData(Guid id)
+    {
         string json = PlayerPrefs.GetString(SAVE_DATA_PREFIX + id.ToString(), "");
-        if (!string.IsNullOrEmpty(json)) {
-            return JsonUtility.FromJson<PlayerLevelSaveData>(json);
+        if (!string.IsNullOrEmpty(json))
+        {
+            PlayerLevelSaveData loadedData = JsonUtility.FromJson<PlayerLevelSaveData>(json);
+            Debug.Log($"Loaded game data for ID: {loadedData.id} (requested: {id})");
+            return loadedData;
         }
+        Debug.LogWarning($"No save data found for ID: {id}");
         return null;
     }
 
-    private void SaveSaveGamesList() {
+    private void SaveSaveGamesList()
+    {
         var stringIds = saveGameIds.Select(guid => guid.ToString()).ToArray();
         var saveGameList = new SaveGamesList { saveIds = stringIds };
         string json = JsonUtility.ToJson(saveGameList, true);
@@ -228,9 +263,11 @@ public class SaveGameManager : MonoBehaviour {
         PlayerPrefs.Save();
     }
 
-    private void LoadSaveGamesList() {
+    private void LoadSaveGamesList()
+    {
         string json = PlayerPrefs.GetString(SAVE_LIST_KEY, "");
-        if (!string.IsNullOrEmpty(json)) {
+        if (!string.IsNullOrEmpty(json))
+        {
             SaveGamesList savesList = JsonUtility.FromJson<SaveGamesList>(json);
             if (savesList.saveIds != null)
                 saveGameIds = savesList.saveIds.Select(id => Guid.Parse(id)).ToList();
@@ -241,34 +278,41 @@ public class SaveGameManager : MonoBehaviour {
             saveGameIds = new List<Guid>();
     }
 
-    private Guid GetCurrentSaveId() {
+    private Guid GetCurrentSaveId()
+    {
         string lastSaveId = PlayerPrefs.GetString(LAST_SAVE_KEY, "");
-        if (!string.IsNullOrEmpty(lastSaveId) && Guid.TryParse(lastSaveId, out Guid id) && saveGameIds.Contains(id)) {
+        if (!string.IsNullOrEmpty(lastSaveId) && Guid.TryParse(lastSaveId, out Guid id) && saveGameIds.Contains(id))
+        {
             return id;
         }
         return Guid.Empty;
     }
 
-    private void OnGetCurrentCoinsForSave(System.Action<int> callback) {
+    private void OnGetCurrentCoinsForSave(System.Action<int> callback)
+    {
         callback?.Invoke(currentGameData?.coins ?? 0);
     }
 
-    private void OnGetTimeRemainingForSave(System.Action<float> callback) {
+    private void OnGetTimeRemainingForSave(System.Action<float> callback)
+    {
         callback?.Invoke(currentGameData?.timeRemaining ?? 0f);
     }
 
-    private void OnCurrentCoinsReceived(int coins) {
+    private void OnCurrentCoinsReceived(int coins)
+    {
         if (currentGameData != null)
             currentGameData.coins = coins;
     }
 
-    private void OnRemainingTimeReceived(float time) {
+    private void OnRemainingTimeReceived(float time)
+    {
         if (currentGameData != null)
             currentGameData.timeRemaining = time;
     }
 }
 
 [System.Serializable]
-public class SaveGamesList {
+public class SaveGamesList
+{
     public string[] saveIds;
 }

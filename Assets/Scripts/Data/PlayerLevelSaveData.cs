@@ -2,7 +2,8 @@ using UnityEngine;
 using System;
 
 [System.Serializable]
-public class PlayerLevelSaveData {
+public class PlayerLevelSaveData
+{
     [Header("Save Metadata")]
     public string id;
     public string saveDate;
@@ -23,10 +24,24 @@ public class PlayerLevelSaveData {
     public bool isPaused;
     public float playTimeElapsed;
 
-    public PlayerLevelSaveData() {
-        id = System.Guid.NewGuid().ToString();
-        saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        sceneName = "Level1";
+    public PlayerLevelSaveData()
+    {
+        // Constructor for JSON deserialization - don't overwrite id
+        // Default values for fields (id should be set externally when creating new saves)
+        if (string.IsNullOrEmpty(id))
+        {
+            id = System.Guid.NewGuid().ToString();
+        }
+        if (string.IsNullOrEmpty(saveDate))
+        {
+            saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            sceneName = "Level1";
+        }
+
+        // These will be overwritten by JSON if deserializing
         playerPosition = Vector3.zero;
         playerRotation = Vector3.zero;
         coins = 0;
@@ -38,7 +53,8 @@ public class PlayerLevelSaveData {
         playTimeElapsed = 0f;
     }
 
-    public PlayerLevelSaveData(string scene) {
+    public PlayerLevelSaveData(string scene)
+    {
         id = System.Guid.NewGuid().ToString();
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         sceneName = scene;
@@ -53,18 +69,27 @@ public class PlayerLevelSaveData {
         playTimeElapsed = 0f;
     }
 
+    // Static method to create a new save with fresh ID
+    public static PlayerLevelSaveData CreateNewSave(string scene = "Level1")
+    {
+        return new PlayerLevelSaveData(scene);
+    }
+
     // Convert Vector3 rotation to Quaternion
-    public Quaternion GetPlayerRotationAsQuaternion() {
+    public Quaternion GetPlayerRotationAsQuaternion()
+    {
         return Quaternion.Euler(playerRotation);
     }
 
     // Set rotation from Quaternion
-    public void SetPlayerRotationFromQuaternion(Quaternion rotation) {
+    public void SetPlayerRotationFromQuaternion(Quaternion rotation)
+    {
         playerRotation = rotation.eulerAngles;
     }
 
     // Update save date to current time
-    public void UpdateSaveDate() {
+    public void UpdateSaveDate()
+    {
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     }
 }
