@@ -40,7 +40,7 @@ public class SaveGameItem : MonoBehaviour {
 
         // Set coins info
         if (coinsText != null) {
-            coinsText.text = $"Coins: {saveData.coins}/{saveData.targetCoins}";
+            coinsText.text = $"Coins: {saveData.coins}";
         }
 
         // Set time info

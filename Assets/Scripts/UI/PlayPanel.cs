@@ -29,9 +29,6 @@ public class PlayPanel : MonoBehaviour {
 
         if (continueButton != null)
             continueButton.onClick.AddListener(OnContinueButtonClicked);
-
-        if (backButton != null)
-            backButton.onClick.AddListener(OnBackButtonClicked);
     }
 
     private void CleanupButtonListeners() {
@@ -40,16 +37,12 @@ public class PlayPanel : MonoBehaviour {
 
         if (continueButton != null)
             continueButton.onClick.RemoveListener(OnContinueButtonClicked);
-
-        if (backButton != null)
-            backButton.onClick.RemoveListener(OnBackButtonClicked);
-
     }
 
     private void OnNewGameButtonClicked() {
         SaveEvents.onCreateNewGame?.Invoke(saveId => {
             if (saveId != Guid.Empty) {
-                StartNewGame();
+                Debug.Log($"New game created with id {saveId}");
             }
         });
     }
@@ -61,11 +54,6 @@ public class PlayPanel : MonoBehaviour {
 
     private void OnBackButtonClicked() {
         UIEvents.onShowMainMenuPanel?.Invoke();
-    }
-
-    private void StartNewGame() {
-        // Start loading to Level1
-        LevelEvents.onLoadSceneByName?.Invoke("Level1");
     }
 
     private void StartLoadedGame() {
