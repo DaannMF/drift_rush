@@ -19,17 +19,13 @@ public class PlayerLevelSaveData
     {
         // Constructor for JSON deserialization - don't overwrite existing values
         if (string.IsNullOrEmpty(id))
-        {
             id = System.Guid.NewGuid().ToString();
-        }
+
         if (string.IsNullOrEmpty(saveDate))
-        {
             saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        }
+
         if (string.IsNullOrEmpty(sceneName))
-        {
             sceneName = "Level1";
-        }
 
         // Default values - will be overwritten by JSON if deserializing
         playerPosition = Vector3.zero;
@@ -70,19 +66,16 @@ public class PlayerLevelSaveData
         return new PlayerLevelSaveData(sceneName, playerPos, playerRot, currentCoins, remainingTime);
     }
 
-    // Convert Vector3 rotation to Quaternion
     public Quaternion GetPlayerRotationAsQuaternion()
     {
         return Quaternion.Euler(playerRotation);
     }
 
-    // Set rotation from Quaternion
     public void SetPlayerRotationFromQuaternion(Quaternion rotation)
     {
         playerRotation = rotation.eulerAngles;
     }
 
-    // Update save date to current time
     public void UpdateSaveDate()
     {
         saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
