@@ -18,6 +18,10 @@ public class LevelManager : MonoBehaviour {
     public bool IsInLevel => !IsInMainMenu;
     public int TotalLevels => levels != null ? levels.Count : 0;
 
+    private void Awake() {
+        DontDestroyOnLoad(gameObject);
+    }
+
     private void Start() {
         SubscribeToEvents();
     }

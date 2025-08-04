@@ -10,6 +10,10 @@ public class CanvasManager : MonoBehaviour {
 
 
 
+    private void Awake() {
+        DontDestroyOnLoad(gameObject);
+    }
+
     private void Start() {
         SubscribeToEvents();
     }

@@ -14,6 +14,10 @@ public class GameManager : MonoBehaviour {
     private bool gameStarted;
     private bool isLevelInitialized;
 
+    private void Awake() {
+        DontDestroyOnLoad(gameObject);
+    }
+
     void Start() {
         SubscribeToEvents();
 

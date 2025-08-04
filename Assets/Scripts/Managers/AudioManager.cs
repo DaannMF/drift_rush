@@ -49,7 +49,9 @@ public class AudioManager : MonoBehaviour {
     private int currentSFXIndex = 0;
 
     private void Awake() {
+        DontDestroyOnLoad(gameObject);
         InitializeAudioSources();
+        LoadAudioSettings();
     }
 
     private void Start() {
@@ -320,6 +322,20 @@ public class AudioManager : MonoBehaviour {
         foreach (var audioSource in continuousAudioSources.Values) {
             audioSource.volume = sfxVolume * masterVolume;
         }
+    }
+
+    private void LoadAudioSettings() {
+        PlayerSettingsSaveData settings = PlayerSettingsSaveData.LoadFromPlayerPrefs();
+
+        masterVolume = settings.MasterVolume;
+        musicVolume = settings.MusicVolume;
+        uiVolume = settings.UIVolume;
+        sfxVolume = settings.SFXVolume;
+
+        // Apply the loaded settings immediately
+        UpdateAllVolumes();
+
+        Debug.Log($"Audio settings loaded: Master={masterVolume}, Music={musicVolume}, UI={uiVolume}, SFX={sfxVolume}");
     }
 
     private void UpdateAllVolumes() {
