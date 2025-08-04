@@ -1,16 +1,13 @@
 using UnityEngine;
 
-public class SettingsManager : MonoBehaviour
-{
+public class SettingsManager : MonoBehaviour {
 
-    private void Awake()
-    {
+    private void Awake() {
         DontDestroyOnLoad(gameObject);
         LoadAndApplyAllSettings();
     }
 
-    private void LoadAndApplyAllSettings()
-    {
+    private void LoadAndApplyAllSettings() {
         PlayerSettingsSaveData settings = PlayerSettingsSaveData.LoadFromPlayerPrefs();
 
         // Apply video settings immediately
@@ -22,8 +19,7 @@ public class SettingsManager : MonoBehaviour
                  $"FrameRate={settings.frameRate}");
     }
 
-    private void ApplyVideoSettings(PlayerSettingsSaveData settings)
-    {
+    private void ApplyVideoSettings(PlayerSettingsSaveData settings) {
         // Apply resolution and fullscreen mode
         Resolution targetRes = settings.GetResolution();
         Screen.SetResolution(targetRes.width, targetRes.height, settings.isFullScreen);
