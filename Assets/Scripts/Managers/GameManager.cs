@@ -190,9 +190,15 @@ public class GameManager : MonoBehaviour {
 
     private void SetCurrentCoinsFromLoad(int coins) {
         currentCoins = coins;
+        // Update UI immediately when loading save data
+        GameEvents.onCurrentCoinsChanged?.Invoke(currentCoins, targetCoins);
+        Debug.Log($"Set coins from save: {currentCoins}/{targetCoins}");
     }
 
     private void SetRemainingTimeFromLoad(float time) {
         currentTime = time;
+        // Update UI immediately when loading save data
+        GameEvents.onCurrentTimeChanged?.Invoke(currentTime);
+        Debug.Log($"Set time from save: {currentTime}");
     }
 }

@@ -46,6 +46,7 @@ public class LevelManager : MonoBehaviour {
         LevelEvents.onGetIsInLevel += callback => callback?.Invoke(IsInLevel);
         LevelEvents.onGetTotalLevels += callback => callback?.Invoke(TotalLevels);
         LevelEvents.onGetLevelData += OnGetLevelData;
+        LevelEvents.onGetLevelDataByScene += OnGetLevelDataByScene;
 
         // Car Reset
         CarEvents.onResetCar += OnResetCar;
@@ -53,6 +54,11 @@ public class LevelManager : MonoBehaviour {
 
     private void OnGetLevelData(System.Action<List<LevelData>> callback) {
         callback?.Invoke(levels);
+    }
+
+    private void OnGetLevelDataByScene(string sceneName, System.Action<LevelData> callback) {
+        LevelData levelData = levels?.Find(l => l.SceneName == sceneName);
+        callback?.Invoke(levelData);
     }
 
     private void UnsubscribeFromEvents() {
@@ -70,7 +76,8 @@ public class LevelManager : MonoBehaviour {
         LevelEvents.onGetIsInMainMenu -= callback => callback?.Invoke(IsInMainMenu);
         LevelEvents.onGetIsInLevel -= callback => callback?.Invoke(IsInLevel);
         LevelEvents.onGetTotalLevels -= callback => callback?.Invoke(TotalLevels);
-        LevelEvents.onGetLevelData -= callback => callback?.Invoke(levels);
+        LevelEvents.onGetLevelData -= OnGetLevelData;
+        LevelEvents.onGetLevelDataByScene -= OnGetLevelDataByScene;
 
         // Car Reset
         CarEvents.onResetCar -= OnResetCar;

@@ -73,22 +73,45 @@ public class SaveGameManager : MonoBehaviour
     // Create a new game save
     private void OnCreateNewGame(System.Action<Guid> callback)
     {
-        PlayerLevelSaveData newSave = PlayerLevelSaveData.CreateNewSave("Level1");
+        string sceneName = "Level1";
 
-        // Save the game data
-        SaveGameData(newSave);
+        // Get level data to create save with correct values
+        LevelEvents.onGetLevelDataByScene?.Invoke(sceneName, levelData =>
+        {
+            PlayerLevelSaveData newSave;
 
-        // Add to save list
-        saveGameIds.Add(Guid.Parse(newSave.id));
-        SaveSaveGamesList();
+            if (levelData != null)
+            {
+                // Create save with LevelData values
+                newSave = PlayerLevelSaveData.CreateNewSaveWithLevelData(
+                    sceneName,
+                    levelData.TargetCoins,
+                    levelData.TimeLimit
+                );
+                Debug.Log($"Created new save with LevelData: {levelData.TargetCoins} coins, {levelData.TimeLimit}s");
+            }
+            else
+            {
+                // Fallback to default values if LevelData not found
+                newSave = PlayerLevelSaveData.CreateNewSave(sceneName);
+                Debug.LogWarning($"LevelData not found for {sceneName}, using default values");
+            }
 
-        // Set as current game and last save
-        currentGameData = newSave;
-        PlayerPrefs.SetString(LAST_SAVE_KEY, newSave.id);
-        PlayerPrefs.Save();
+            // Save the game data
+            SaveGameData(newSave);
 
-        Debug.Log($"Created new game with ID: {newSave.id}");
-        callback?.Invoke(Guid.Parse(newSave.id));
+            // Add to save list
+            saveGameIds.Add(Guid.Parse(newSave.id));
+            SaveSaveGamesList();
+
+            // Set as current game and last save
+            currentGameData = newSave;
+            PlayerPrefs.SetString(LAST_SAVE_KEY, newSave.id);
+            PlayerPrefs.Save();
+
+            Debug.Log($"Created new game with ID: {newSave.id}");
+            callback?.Invoke(Guid.Parse(newSave.id));
+        });
     }
 
     // Save current game state
@@ -225,11 +248,15 @@ public class SaveGameManager : MonoBehaviour
             player.transform.SetPositionAndRotation(currentGameData.playerPosition, currentGameData.GetPlayerRotationAsQuaternion());
         }
 
-
+        // Important: Apply save data AFTER level initialization
+        // This ensures the HUD shows: currentCoins/targetCoins and currentTime correctly
         GameEvents.onSetCurrentCoins?.Invoke(currentGameData.coins);
         GameEvents.onSetTimeRemaining?.Invoke(currentGameData.timeRemaining);
 
-        Debug.Log($"Applied save data to scene: {currentGameData.sceneName}");
+        // Force UI update to show the correct values
+        UIEvents.onForceUIUpdate?.Invoke();
+
+        Debug.Log($"Applied save data to scene: {currentGameData.sceneName} - Coins: {currentGameData.coins}/{currentGameData.targetCoins}, Time: {currentGameData.timeRemaining}");
     }
 
     private void SaveGameData(PlayerLevelSaveData data)

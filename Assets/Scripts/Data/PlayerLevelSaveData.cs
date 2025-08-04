@@ -75,6 +75,25 @@ public class PlayerLevelSaveData
         return new PlayerLevelSaveData(scene);
     }
 
+    // Create save with specific level data (from ScriptableObject)
+    public static PlayerLevelSaveData CreateNewSaveWithLevelData(string scene, int levelTargetCoins, float levelTimeLimit)
+    {
+        PlayerLevelSaveData newSave = new PlayerLevelSaveData();
+        newSave.id = System.Guid.NewGuid().ToString();
+        newSave.saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        newSave.sceneName = scene;
+        newSave.playerPosition = Vector3.zero;
+        newSave.playerRotation = Vector3.zero;
+        newSave.coins = 0;
+        newSave.timeRemaining = levelTimeLimit;  // From LevelData
+        newSave.targetCoins = levelTargetCoins;  // From LevelData  
+        newSave.totalLevelTime = levelTimeLimit; // From LevelData
+        newSave.isCompleted = false;
+        newSave.isPaused = false;
+        newSave.playTimeElapsed = 0f;
+        return newSave;
+    }
+
     // Convert Vector3 rotation to Quaternion
     public Quaternion GetPlayerRotationAsQuaternion()
     {

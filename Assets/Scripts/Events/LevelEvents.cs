@@ -19,4 +19,5 @@ public abstract class LevelEvents {
     public static UnityAction<System.Action<bool>> onGetIsInLevel;
     public static UnityAction<System.Action<int>> onGetTotalLevels;
     public static UnityAction<System.Action<List<LevelData>>> onGetLevelData;
+    public static UnityAction<string, System.Action<LevelData>> onGetLevelDataByScene;
 }
