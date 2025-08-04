@@ -16,6 +16,16 @@ public class SaveGameItem : MonoBehaviour {
     private Action<PlayerLevelSaveData> onLoadCallback;
     private Action<PlayerLevelSaveData> onDeleteCallback;
 
+    void OnDestroy() {
+        if (loadButton != null) {
+            loadButton.onClick.RemoveAllListeners();
+        }
+
+        if (deleteButton != null) {
+            deleteButton.onClick.RemoveAllListeners();
+        }
+    }
+
     public void Initialize(PlayerLevelSaveData data, Action<PlayerLevelSaveData> loadCallback, Action<PlayerLevelSaveData> deleteCallback) {
         saveData = data;
         onLoadCallback = loadCallback;
@@ -66,7 +76,6 @@ public class SaveGameItem : MonoBehaviour {
     }
 
     private void OnDeleteButtonClicked() {
-        Debug.Log($"Deleting save: {saveData.id}");
         onDeleteCallback?.Invoke(saveData);
     }
 
@@ -112,15 +121,5 @@ public class SaveGameItem : MonoBehaviour {
         int minutes = Mathf.FloorToInt(timeInSeconds / 60);
         int seconds = Mathf.FloorToInt(timeInSeconds % 60);
         return $"{minutes:00}:{seconds:00}";
-    }
-
-    void OnDestroy() {
-        if (loadButton != null) {
-            loadButton.onClick.RemoveAllListeners();
-        }
-
-        if (deleteButton != null) {
-            deleteButton.onClick.RemoveAllListeners();
-        }
     }
 }

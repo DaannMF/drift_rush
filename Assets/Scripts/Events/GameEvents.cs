@@ -7,6 +7,7 @@ public abstract class GameEvents {
     public static UnityAction onResumeGame;
     public static UnityAction onAddCoin;
     public static UnityAction<int, float> onInitializeLevel;
+    public static UnityAction<int, float> onInitializeFreshLevel;
     public static UnityAction onGameFinished;
 
     public static UnityAction<System.Action<bool>> onGetIsGameWon;

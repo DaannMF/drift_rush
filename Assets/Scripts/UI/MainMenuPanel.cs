@@ -1,10 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class MainPanelPanel : MonoBehaviour {
 
     [Header("UI Elements")]
     [SerializeField] Button playButton;
+    [SerializeField] Button continueButton;
     [SerializeField] Button backButton;
     [SerializeField] Button exitButton;
     [SerializeField] Button saveButton;
@@ -18,6 +21,12 @@ public class MainPanelPanel : MonoBehaviour {
 
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "MainMenu") {
             playButton.gameObject.SetActive(false);
+            continueButton.gameObject.SetActive(true);
+            continueButton.onClick.AddListener(() => {
+                GameEvents.onResumeGame?.Invoke();
+            });
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(continueButton.gameObject);
             backButton.gameObject.SetActive(true);
             backButton.onClick.AddListener(OnBackButtonClicked);
 
@@ -36,6 +45,7 @@ public class MainPanelPanel : MonoBehaviour {
             // In MainMenu, hide back button and save button
             playButton.gameObject.SetActive(true);
             backButton.gameObject.SetActive(false);
+            continueButton.gameObject.SetActive(false);
             if (saveButton != null) {
                 saveButton.gameObject.SetActive(false);
             }
@@ -46,19 +56,28 @@ public class MainPanelPanel : MonoBehaviour {
                 GameEvents.onPauseGame?.Invoke();
             }
         });
+
+        SetSelectedObject();
     }
 
     void OnDestroy() {
 #if !UNITY_WEBGL
         exitButton.onClick.RemoveListener(OnExitButtonClicked);
 #endif
-
         if (backButton != null) {
             backButton.onClick.RemoveListener(OnBackButtonClicked);
         }
 
         if (saveButton != null) {
             saveButton.onClick.RemoveListener(OnSaveButtonClicked);
+        }
+
+        if (playButton != null) {
+            playButton.onClick.RemoveAllListeners();
+        }
+
+        if (continueButton != null) {
+            continueButton.onClick.RemoveAllListeners();
         }
     }
 
@@ -68,19 +87,24 @@ public class MainPanelPanel : MonoBehaviour {
 
     private void OnSaveButtonClicked() {
         SaveEvents.onSaveCurrentGame?.Invoke();
-
-        // You could show a confirmation message here
-        Debug.Log("Game saved successfully!");
     }
 
     private void OnExitButtonClicked() {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log("Exiting game");
-#endif
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #elif UNITY_STANDALONE
         Application.Quit();
 #endif
+    }
+
+    private void SetSelectedObject() {
+        if (SceneManager.GetActiveScene().name == "MainMenu") {
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(playButton.gameObject);
+        }
+        else {
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(continueButton.gameObject);
+        }
     }
 }

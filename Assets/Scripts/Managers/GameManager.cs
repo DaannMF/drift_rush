@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour {
@@ -16,7 +15,6 @@ public class GameManager : MonoBehaviour {
     private bool isLevelInitialized;
 
     private void Awake() {
-        // Verificar si ya existe una instancia
         if (instance != null && instance != this) {
             Destroy(gameObject);
             return;
@@ -36,34 +34,6 @@ public class GameManager : MonoBehaviour {
 
     void Update() {
         HandleCountdownTimer();
-        HandleCheetCodes();
-    }
-
-    private void HandleCheetCodes() {
-        if (Input.GetKeyDown(KeyCode.F1))
-            WinImmediate();
-
-
-        if (Input.GetKeyDown(KeyCode.F2))
-            LoseImmediate();
-
-
-        if (Input.GetKeyDown(KeyCode.F3))
-            StopTimer();
-    }
-
-    private void WinImmediate() {
-        isGameWon = true;
-        GameEvents.onGameFinished?.Invoke();
-    }
-
-    private void LoseImmediate() {
-        isGameWon = false;
-        GameEvents.onGameFinished?.Invoke();
-    }
-
-    private void StopTimer() {
-        gameStarted = !gameStarted;
     }
 
     private void OnDestroy() {
@@ -75,6 +45,7 @@ public class GameManager : MonoBehaviour {
         GameEvents.onResumeGame += ResumeGame;
         GameEvents.onAddCoin += AddCoin;
         GameEvents.onInitializeLevel += InitializeLevel;
+        GameEvents.onInitializeFreshLevel += InitializeFreshLevel;
         UIEvents.onForceUIUpdate += ForceUIUpdate;
         GameEvents.onGetIsGameWon += HandleGetIsGameWon;
         GameEvents.onGetCurrentCoins += HandleGetCurrentCoins;
@@ -88,6 +59,7 @@ public class GameManager : MonoBehaviour {
         GameEvents.onResumeGame -= ResumeGame;
         GameEvents.onAddCoin -= AddCoin;
         GameEvents.onInitializeLevel -= InitializeLevel;
+        GameEvents.onInitializeFreshLevel -= InitializeFreshLevel;
         UIEvents.onForceUIUpdate -= ForceUIUpdate;
         GameEvents.onGetIsGameWon -= HandleGetIsGameWon;
         GameEvents.onGetCurrentCoins -= HandleGetCurrentCoins;
@@ -100,13 +72,11 @@ public class GameManager : MonoBehaviour {
         targetCoins = levelTargetCoins;
         timeLimit = levelTimeLimit;
 
-        // Only reset coins and time if this is a fresh level initialization (not loading a save)
         if (currentCoins == 0 && currentTime == 0) {
             currentCoins = 0;
             currentTime = timeLimit;
         }
 
-        // Always update UI with current values
         GameEvents.onCurrentCoinsChanged?.Invoke(currentCoins, targetCoins);
         GameEvents.onCurrentTimeChanged?.Invoke(currentTime);
 
@@ -200,15 +170,29 @@ public class GameManager : MonoBehaviour {
 
     private void SetCurrentCoinsFromLoad(int coins) {
         currentCoins = coins;
-        // Update UI immediately when loading save data
         GameEvents.onCurrentCoinsChanged?.Invoke(currentCoins, targetCoins);
-        Debug.Log($"Set coins from save: {currentCoins}/{targetCoins}");
     }
 
     private void SetRemainingTimeFromLoad(float time) {
         currentTime = time;
-        // Update UI immediately when loading save data
         GameEvents.onCurrentTimeChanged?.Invoke(currentTime);
-        Debug.Log($"Set time from save: {currentTime}");
+    }
+
+    public void InitializeFreshLevel(int levelTargetCoins, float levelTimeLimit) {
+        targetCoins = levelTargetCoins;
+        timeLimit = levelTimeLimit;
+
+        currentCoins = 0;
+        currentTime = timeLimit;
+
+        GameEvents.onCurrentCoinsChanged?.Invoke(currentCoins, targetCoins);
+        GameEvents.onCurrentTimeChanged?.Invoke(currentTime);
+
+        gameStarted = false;
+        isGameWon = false;
+        isLevelInitialized = true;
+
+        ConfigureUIForCurrentScene();
+        AudioEvents.onPlayGameMusic?.Invoke();
     }
 }

@@ -1,15 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
-using System;
 
 public class PlayPanel : MonoBehaviour {
     [Header("Main Buttons")]
     [SerializeField] private Button newGameButton;
     [SerializeField] private Button continueButton;
     [SerializeField] private Button loadGameButton;
-    [SerializeField] private Button backButton;
-
 
     void Awake() {
         SetupButtonListeners();
@@ -41,25 +37,14 @@ public class PlayPanel : MonoBehaviour {
 
     private void OnNewGameButtonClicked() {
         SaveEvents.onCreateNewGame?.Invoke(saveId => {
-            if (saveId != Guid.Empty) {
-                Debug.Log($"New game created with id {saveId}");
-            }
         });
     }
 
     private void OnContinueButtonClicked() {
-        // SaveGameManager handles the complete loading process including scene loading
         SaveEvents.onLoadLastGame?.Invoke();
-        // No need for StartLoadedGame() - SaveGameManager handles everything
     }
 
-    private void OnBackButtonClicked() {
-        UIEvents.onShowMainMenuPanel?.Invoke();
-    }
-
-
-
-    private void UpdateButtonStates() {
+    public void UpdateButtonStates() {
         SaveEvents.onHasSavedGames?.Invoke(hasSavedGames => {
             if (continueButton != null) {
                 continueButton.interactable = hasSavedGames;
@@ -69,9 +54,5 @@ public class PlayPanel : MonoBehaviour {
                 loadGameButton.interactable = hasSavedGames;
             }
         });
-    }
-
-    public void RefreshButtonStates() {
-        UpdateButtonStates();
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class CanvasManager : MonoBehaviour {
@@ -13,7 +12,6 @@ public class CanvasManager : MonoBehaviour {
     private static CanvasManager instance = null;
 
     private void Awake() {
-        // Verificar si ya existe una instancia
         if (instance != null && instance != this) {
             Destroy(gameObject);
             return;

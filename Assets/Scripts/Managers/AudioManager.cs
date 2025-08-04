@@ -45,12 +45,9 @@ public class AudioManager : MonoBehaviour {
     [SerializeField] private float uiVolume = 1f;
     [SerializeField] private float sfxVolume = 1f;
 
-
-
     private int currentSFXIndex = 0;
 
     private void Awake() {
-        // Verificar si ya existe una instancia
         if (instance != null && instance != this) {
             Destroy(gameObject);
             return;
@@ -65,7 +62,6 @@ public class AudioManager : MonoBehaviour {
     private void Start() {
         SubscribeToEvents();
 
-        // Inicializar música del menú principal si estamos en MainMenu
         LevelEvents.onGetIsInMainMenu?.Invoke(isInMainMenu => {
             if (isInMainMenu) {
                 OnPlayMenuMusic();
@@ -340,10 +336,7 @@ public class AudioManager : MonoBehaviour {
         uiVolume = settings.UIVolume;
         sfxVolume = settings.SFXVolume;
 
-        // Apply the loaded settings immediately
         UpdateAllVolumes();
-
-        Debug.Log($"Audio settings loaded: Master={masterVolume}, Music={musicVolume}, UI={uiVolume}, SFX={sfxVolume}");
     }
 
     private void UpdateAllVolumes() {
@@ -393,6 +386,4 @@ public class AudioManager : MonoBehaviour {
     private void OnStopAllCarAudio() {
         StopAllContinuousAudio();
     }
-
-
 }

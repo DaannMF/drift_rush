@@ -121,10 +121,6 @@ public class SettingsPanel : MonoBehaviour {
 
         // Set current frame rate in dropdown
         SetCurrentFrameRateInDropdown();
-
-        // Note: AudioManager and SettingsManager already loaded and applied settings at startup
-        // SettingsPanel only needs to update the UI to reflect current settings
-        // Video settings are applied by SettingsManager on game start
     }
 
     private void SetCurrentResolutionInDropdown() {
@@ -173,7 +169,7 @@ public class SettingsPanel : MonoBehaviour {
 
         frameRateDropDown.ClearOptions();
         frameRateDropDown.AddOptions(new List<string>(frameRateLabels));
-        Debug.Log("Frame Rates loaded");
+
     }
 
     private void SetCurrentFrameRateInDropdown() {
@@ -190,7 +186,7 @@ public class SettingsPanel : MonoBehaviour {
     private void OnFrameRateChanged(int value) {
         if (value >= 0 && value < frameRateOptions.Length) {
             int selectedFrameRate = frameRateOptions[value];
-            Debug.Log($"Frame rate changed to: {(selectedFrameRate == 0 ? "Unlimited" : selectedFrameRate + " FPS")}");
+
 
             playerSettings.frameRate = selectedFrameRate;
             SaveSettings();
@@ -216,11 +212,11 @@ public class SettingsPanel : MonoBehaviour {
 
         resolutionsDropDown.ClearOptions();
         resolutionsDropDown.AddOptions(resolutionOptions);
-        Debug.Log("Resolutions loaded");
+
     }
 
     private void OnFullScreenToggleChanged(bool isOn) {
-        Debug.Log($"FullScreen changed to : {isOn}");
+
         playerSettings.isFullScreen = isOn;
         SaveSettings();
 
@@ -231,13 +227,13 @@ public class SettingsPanel : MonoBehaviour {
     private void OnResolutionValueChange(int value) {
         string key = resolutionOptions[value];
         if (resolutions.TryGetValue(key, out Resolution res)) {
-            Debug.Log($"Resolution changed to : {key}");
+
             playerSettings.SetResolution(res);
             SaveSettings();
             Screen.SetResolution(res.width, res.height, toggle.isOn);
         }
         else {
-            Debug.LogWarning($"Resolution key:{key} not found in dictionary");
+
         }
     }
 }

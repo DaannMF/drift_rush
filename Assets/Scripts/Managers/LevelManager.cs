@@ -12,6 +12,7 @@ public class LevelManager : MonoBehaviour {
 
     private int currentLevelIndex = 0;
     private bool isLoading = false;
+    private bool shouldAutoSaveAfterLoad = false;
     private GameObject playerInstance;
     private SpawnPoint currentSpawnPoint;
 
@@ -21,7 +22,6 @@ public class LevelManager : MonoBehaviour {
     public int TotalLevels => levels != null ? levels.Count : 0;
 
     private void Awake() {
-        // Verificar si ya existe una instancia
         if (instance != null && instance != this) {
             Destroy(gameObject);
             return;
@@ -45,6 +45,7 @@ public class LevelManager : MonoBehaviour {
         // LevelManager Events
         LevelEvents.onLoadSceneByNameOnly += LoadSceneByNameOnly;
         LevelEvents.onLoadNextLevel += LoadNextLevel;
+        LevelEvents.onLoadNextLevelWithAutoSave += LoadNextLevelWithAutoSave;
         LevelEvents.onLoadMainMenu += LoadMainMenu;
 
         // LevelManager Queries
@@ -75,6 +76,7 @@ public class LevelManager : MonoBehaviour {
         // LevelManager Events
         LevelEvents.onLoadSceneByNameOnly -= LoadSceneByNameOnly;
         LevelEvents.onLoadNextLevel -= LoadNextLevel;
+        LevelEvents.onLoadNextLevelWithAutoSave -= LoadNextLevelWithAutoSave;
         LevelEvents.onLoadMainMenu -= LoadMainMenu;
 
         // LevelManager Queries
@@ -100,12 +102,19 @@ public class LevelManager : MonoBehaviour {
 
     public void LoadSceneByNameOnly(string sceneName) {
         if (isLoading) return;
-        StartCoroutine(LoadSceneByNameOnlyAsync(sceneName));
+        StartCoroutine(LoadSceneByNameAsync(sceneName));
     }
 
     public void LoadNextLevel() {
         if (currentLevelIndex + 1 < levels.Count)
             LoadLevel(currentLevelIndex + 1);
+    }
+
+    public void LoadNextLevelWithAutoSave() {
+        if (currentLevelIndex + 1 < levels.Count) {
+            shouldAutoSaveAfterLoad = true;
+            LoadLevel(currentLevelIndex + 1);
+        }
     }
 
     public void RestartCurrentLevel() {
@@ -138,6 +147,12 @@ public class LevelManager : MonoBehaviour {
 
         isLoading = false;
         LevelEvents.onLevelLoadCompleted?.Invoke();
+
+        // Auto-save if requested after level load is complete
+        if (shouldAutoSaveAfterLoad) {
+            shouldAutoSaveAfterLoad = false;
+            StartCoroutine(AutoSaveAfterLevelLoad());
+        }
     }
 
     private IEnumerator LoadSceneByNameAsync(string sceneName) {
@@ -168,59 +183,9 @@ public class LevelManager : MonoBehaviour {
 
         yield return new WaitForEndOfFrame();
 
-        // Configure UI based on scene
-        if (sceneName == mainMenuSceneName) {
-            ConfigureUIForMainMenu();
-        }
-        else {
-            // Find level data for this scene
-            var levelData = levels?.Find(l => l.SceneName == sceneName);
-            if (levelData != null) {
-                currentLevelIndex = levels.IndexOf(levelData);
-                InitializeLevel();
-                ConfigureUIForLevel();
-            }
-        }
-
-        // UIEvents.onShowGameUI?.Invoke();
-        UIEvents.onForceUIUpdate?.Invoke();
-
-        isLoading = false;
-        LevelEvents.onLevelLoadCompleted?.Invoke();
-    }
-
-    private IEnumerator LoadSceneByNameOnlyAsync(string sceneName) {
-        isLoading = true;
-        LevelEvents.onLevelLoadStarted?.Invoke();
-
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
-        asyncLoad.allowSceneActivation = false;
-
-        // Simulate progress for smooth loading bar
-        float fakeProgress = 0f;
-        while (fakeProgress < 0.9f) {
-            fakeProgress = Mathf.MoveTowards(fakeProgress, asyncLoad.progress / 0.9f, Time.unscaledDeltaTime * 0.5f);
-            LevelEvents.onLevelLoadProgress?.Invoke(fakeProgress);
-            yield return null;
-        }
-
-        // Complete the loading
-        while (fakeProgress < 1f) {
-            fakeProgress = Mathf.MoveTowards(fakeProgress, 1f, Time.unscaledDeltaTime * 2f);
-            LevelEvents.onLevelLoadProgress?.Invoke(fakeProgress);
-            yield return null;
-        }
-
-        // Activate scene
-        asyncLoad.allowSceneActivation = true;
-        yield return new WaitUntil(() => asyncLoad.isDone);
-
-        yield return new WaitForEndOfFrame();
-
         ConfigureUIForLevel();
 
-        // NO auto-initialization - caller is responsible for initialization
-        Debug.Log($"Scene {sceneName} loaded without auto-initialization");
+
 
         isLoading = false;
         LevelEvents.onLevelLoadCompleted?.Invoke();
@@ -291,7 +256,13 @@ public class LevelManager : MonoBehaviour {
         LevelData levelData = CurrentLevel;
         if (levelData == null) return;
 
-        GameEvents.onInitializeLevel?.Invoke(levelData.TargetCoins, levelData.TimeLimit);
+        // Use fresh initialization if we're auto-saving (indicating level progression)
+        if (shouldAutoSaveAfterLoad) {
+            GameEvents.onInitializeFreshLevel?.Invoke(levelData.TargetCoins, levelData.TimeLimit);
+        }
+        else {
+            GameEvents.onInitializeLevel?.Invoke(levelData.TargetCoins, levelData.TimeLimit);
+        }
     }
 
     private void ConfigureUIForLevel() {
@@ -307,5 +278,12 @@ public class LevelManager : MonoBehaviour {
     private void OnResetCar() {
         if (playerInstance != null && currentSpawnPoint != null)
             currentSpawnPoint.SpawnObject(playerInstance);
+    }
+
+    private IEnumerator AutoSaveAfterLevelLoad() {
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForEndOfFrame();
+
+        SaveEvents.onSaveCurrentGame?.Invoke();
     }
 }

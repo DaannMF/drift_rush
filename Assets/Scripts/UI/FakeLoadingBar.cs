@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using TMPro;
 
 public class FakeLoadingBar : MonoBehaviour {
@@ -9,11 +8,6 @@ public class FakeLoadingBar : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI progressText;
     [SerializeField] private TextMeshProUGUI loadingMessageText;
     [SerializeField] private GameObject loadingPanel;
-
-    [Header("Loading Settings")]
-    [SerializeField] private float minLoadingTime = 2f;
-    [SerializeField] private float maxLoadingTime = 4f;
-    [SerializeField] private AnimationCurve loadingCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     [Header("Loading Messages")]
     [SerializeField]

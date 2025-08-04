@@ -1,11 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class LoadGamePanel : MonoBehaviour {
     [Header("Load Game UI")]
     [SerializeField] private Transform saveGameContainer;
     [SerializeField] private GameObject saveGameItemPrefab;
+    [SerializeField] private Button backButton;
 
     private List<GameObject> saveGameItems = new List<GameObject>();
     private Action<PlayerLevelSaveData> onGameSelectedCallback;
@@ -52,18 +55,21 @@ public class LoadGamePanel : MonoBehaviour {
     private void OnSaveGameDeleted(PlayerLevelSaveData saveData) {
         // Delete the save game
         SaveEvents.onDeleteGame?.Invoke(Guid.Parse(saveData.id));
-        Debug.Log($"Successfully deleted save game: {saveData.id}");
+
         PopulateSaveGamesList(); // Refresh the list
 
         // Notify that a save was deleted (for updating other UI elements)
         NotifySaveDeleted();
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(backButton.gameObject);
     }
 
     private void NotifySaveDeleted() {
         if (transform.parent != null) {
             PlayPanel playPanel = transform.parent.GetComponentInParent<PlayPanel>();
             if (playPanel != null)
-                playPanel.RefreshButtonStates();
+                playPanel.UpdateButtonStates();
         }
     }
 

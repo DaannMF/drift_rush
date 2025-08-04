@@ -10,6 +10,7 @@ public abstract class LevelEvents {
 
     public static UnityAction<string> onLoadSceneByNameOnly;
     public static UnityAction onLoadNextLevel;
+    public static UnityAction onLoadNextLevelWithAutoSave;
     public static UnityAction onLoadMainMenu;
 
     public static UnityAction<System.Action<int>> onGetCurrentLevelIndex;

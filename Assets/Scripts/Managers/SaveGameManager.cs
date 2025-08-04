@@ -4,9 +4,6 @@ using System.Linq;
 using System;
 
 public class SaveGameManager : MonoBehaviour {
-    [Header("Save Settings")]
-    [SerializeField] private int maxSaveSlots = 10;
-
     private const string SAVE_LIST_KEY = "SaveGamesList";
     private const string SAVE_DATA_PREFIX = "SaveGame_";
     private const string LAST_SAVE_KEY = "LastSaveIndex";
@@ -16,7 +13,6 @@ public class SaveGameManager : MonoBehaviour {
     private PlayerLevelSaveData currentGameData;
 
     private void Awake() {
-        // Verificar si ya existe una instancia
         if (instance != null && instance != this) {
             Destroy(gameObject);
             return;
@@ -63,100 +59,69 @@ public class SaveGameManager : MonoBehaviour {
         SaveEvents.onApplySaveDataToScene -= ApplyGameDataToScene;
     }
 
-    // Create a new game save - Step 1: Load scene first, then create save
     private void OnCreateNewGame(System.Action<Guid> callback) {
         string sceneName = "Level1";
 
-        Debug.Log("Step 1: Loading Level1 scene for new game...");
-
-        // Step 2: Load scene asynchronously first (without auto-initialization)
         LevelEvents.onLoadSceneByNameOnly?.Invoke(sceneName);
-
-        // Step 3: After scene loads, create save with scene data
         StartCoroutine(CreateSaveAfterSceneLoad(sceneName, callback));
     }
 
     private System.Collections.IEnumerator CreateSaveAfterSceneLoad(string sceneName, System.Action<Guid> callback) {
-        // Wait for scene to load
         yield return new WaitUntil(() => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == sceneName);
         yield return new WaitForEndOfFrame();
 
-        Debug.Log("Step 3: Scene loaded, creating save with current scene data...");
-
-        // GameManager's InitializeLevel already handles UI configuration, no need to duplicate
         UIEvents.onShowGameUI?.Invoke();
-
         yield return new WaitForEndOfFrame();
 
-        // Get level data to know target time and coins for new game
         LevelEvents.onGetLevelDataByScene?.Invoke(sceneName, levelData => {
             float targetTime = levelData != null ? levelData.TimeLimit : 120f;
             int targetCoins = levelData != null ? levelData.TargetCoins : 10;
 
-            // Create save with current scene position and initial values
             PlayerLevelSaveData newSave = PlayerLevelSaveData.CreateFromCurrentScene(sceneName);
-            newSave.coins = 0; // New game starts with 0 coins
-            newSave.timeRemaining = targetTime; // New game starts with full time
+            newSave.coins = 0;
+            newSave.timeRemaining = targetTime;
 
-            // Save the game data
             SaveGameData(newSave);
 
-            // Add to save list
             saveGameIds.Add(Guid.Parse(newSave.id));
             SaveSaveGamesList();
 
-            // Set as current game and last save
             currentGameData = newSave;
             PlayerPrefs.SetString(LAST_SAVE_KEY, newSave.id);
             PlayerPrefs.Save();
 
             GameEvents.onInitializeLevel?.Invoke(targetCoins, targetTime);
 
-            // Notify that the new game setup is complete
-            Debug.Log("NewGame setup complete - GameManager will handle UI");
-
             callback?.Invoke(Guid.Parse(newSave.id));
         });
     }
 
-    // Save current game state during gameplay - overwrites current save
     public void SaveCurrentGame() {
         if (currentGameData == null) {
-            Debug.LogWarning("No current game data to save!");
             return;
         }
 
-        Debug.Log("Saving current game progress...");
-
-        // Update save data with current scene state
         currentGameData.saveDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         currentGameData.sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
-        // Update player position and rotation
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) {
             currentGameData.playerPosition = player.transform.position;
             currentGameData.playerRotation = player.transform.rotation.eulerAngles;
         }
 
-        // Update game state (coins and time) using events
         GameEvents.onGetCurrentCoins?.Invoke(coins => {
             currentGameData.coins = coins;
 
             GameEvents.onGetTimeRemaining?.Invoke(time => {
                 currentGameData.timeRemaining = time;
-
-                // Save updated data
                 SaveGameData(currentGameData);
-
-                Debug.Log($"Game saved successfully - Scene: {currentGameData.sceneName}, Coins: {currentGameData.coins}, Time: {currentGameData.timeRemaining}");
             });
         });
     }
 
-    // Load a specific save game
     private void OnLoadGame(Guid id) {
-        Debug.Log("Step 1: Loading save data from PlayerPrefs...");
+
 
         PlayerLevelSaveData saveData = LoadGameData(id);
         if (saveData != null) {
@@ -164,7 +129,7 @@ public class SaveGameManager : MonoBehaviour {
             PlayerPrefs.SetString(LAST_SAVE_KEY, id.ToString());
             PlayerPrefs.Save();
 
-            Debug.Log($"Step 2: Save loaded, loading scene {saveData.sceneName}...");
+
 
             // Step 2: Load the scene from save data (without auto-initialization)
             LevelEvents.onLoadSceneByNameOnly?.Invoke(saveData.sceneName);
@@ -173,7 +138,7 @@ public class SaveGameManager : MonoBehaviour {
             StartCoroutine(ApplySaveAfterSceneLoad());
         }
         else {
-            Debug.LogError($"Failed to load game with ID: {id}");
+
         }
     }
 
@@ -184,8 +149,6 @@ public class SaveGameManager : MonoBehaviour {
         yield return new WaitUntil(() => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == currentGameData.sceneName);
         yield return new WaitForEndOfFrame(); // Ensure everything is initialized
 
-        Debug.Log("Step 3: Scene loaded, showing HUD first then applying save data...");
-
         // Step 3: Show game HUD FIRST so it can receive the data updates
         UIEvents.onShowGameUI?.Invoke();
 
@@ -195,7 +158,7 @@ public class SaveGameManager : MonoBehaviour {
         // Step 4: Apply save data to scene (position, coins, time)
         ApplyGameDataToScene();
 
-        Debug.Log($"Step 4: Game loaded successfully - Coins: {currentGameData.coins}, Time: {currentGameData.timeRemaining}");
+
     }
 
     // Load the last played game
@@ -211,8 +174,6 @@ public class SaveGameManager : MonoBehaviour {
             OnLoadGame(saveGameIds.Last());
             return;
         }
-
-        Debug.Log("No saved games found to load");
     }
 
     // Delete a save game
@@ -221,8 +182,6 @@ public class SaveGameManager : MonoBehaviour {
             saveGameIds.Remove(saveId);
             PlayerPrefs.DeleteKey(SAVE_DATA_PREFIX + saveId);
             SaveSaveGamesList();
-
-            Debug.Log($"Deleted save game: {saveId}");
         }
     }
 
@@ -257,7 +216,7 @@ public class SaveGameManager : MonoBehaviour {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) {
             player.transform.SetPositionAndRotation(currentGameData.playerPosition, currentGameData.GetPlayerRotationAsQuaternion());
-            Debug.Log($"Player position set to: {currentGameData.playerPosition}");
+
         }
 
         // IMPORTANT: First get level data to set target values correctly
@@ -270,15 +229,13 @@ public class SaveGameManager : MonoBehaviour {
                 StartCoroutine(ApplySaveDataAfterInitialization());
             }
             else {
-                Debug.LogWarning($"No level data found for scene: {currentGameData.sceneName}");
+
                 // Fallback: apply saved values directly
                 GameEvents.onSetCurrentCoins?.Invoke(currentGameData.coins);
                 GameEvents.onSetTimeRemaining?.Invoke(currentGameData.timeRemaining);
                 UIEvents.onForceUIUpdate?.Invoke();
             }
         });
-
-        Debug.Log($"Applied save data to scene: {currentGameData.sceneName} - Coins: {currentGameData.coins}, Time: {currentGameData.timeRemaining}");
     }
 
     private System.Collections.IEnumerator ApplySaveDataAfterInitialization() {
@@ -291,8 +248,6 @@ public class SaveGameManager : MonoBehaviour {
 
         // Force UI update to show the correct values
         UIEvents.onForceUIUpdate?.Invoke();
-
-        Debug.Log($"Applied saved values after initialization - Coins: {currentGameData.coins}, Time: {currentGameData.timeRemaining}");
     }
 
     private void SaveGameData(PlayerLevelSaveData data) {
@@ -300,7 +255,7 @@ public class SaveGameManager : MonoBehaviour {
         string json = JsonUtility.ToJson(data, true);
         PlayerPrefs.SetString(SAVE_DATA_PREFIX + data.id, json);
         PlayerPrefs.Save();
-        Debug.Log($"Saved game data for ID: {data.id}");
+
     }
 
     private PlayerLevelSaveData LoadGameData(Guid id) {
@@ -309,7 +264,7 @@ public class SaveGameManager : MonoBehaviour {
             PlayerLevelSaveData loadedData = JsonUtility.FromJson<PlayerLevelSaveData>(json);
             return loadedData;
         }
-        Debug.LogWarning($"No save data found for ID: {id}");
+
         return null;
     }
 
